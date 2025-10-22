@@ -8,13 +8,17 @@ body {
 }
 form {
   background-color: hsl(0, 0%, 15%);
-  padding: 15px;
-  border-radius: 5px;
+  padding: 25px;
+  border-radius: 10px;
   width: 420px;
   height: 470px;
   margin: 100px auto;
   border: white 0.8px solid;
-  box-shadow: 0 0 10px rgba(119, 255, 0, 0.284);
+  box-shadow: 0 0 20px rgba(119, 255, 0, 0.2);
+  transition: box-shadow 0.3s ease;
+}
+form:hover {
+  box-shadow: 0 0 30px rgba(119, 255, 0, 0.4);
 }
 h1 {
   font-family: "Gruppo", sans-serif;
@@ -23,7 +27,7 @@ h1 {
   text-transform: uppercase;
   letter-spacing: 5px;
   font-size: 3rem;
-  color: chartreuse;
+  color: rgb(102, 205, 0);
 }
 p {
   text-align: center;
@@ -37,7 +41,6 @@ label {
   display: block;
   margin-bottom: 8px;
   font-weight: 200;
-  /* margin-top: -10px; */
   margin-left: 30px;
   font-size: 0.8rem;
 }
@@ -47,14 +50,14 @@ span {
 input[type="text"],
 input[type="password"] {
   width: 90%;
-  padding: 7px;
-  /* margin-bottom: 10px; */
+  padding: 10px;
   margin-left: 20px;
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.8);
   color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #444;
+  border-radius: 6px;
   box-sizing: border-box;
+  transition: all 0.3s ease;
 }
 input[type="text"]:focus,
 input[type="password"]:focus {
@@ -63,35 +66,53 @@ input[type="password"]:focus {
 }
 
 input[type="submit"] {
-  width: 80%;
+  width: 90%;
   display: block;
-  margin-left: 50px;
+  margin: 30px auto;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
   background-color: rgb(102, 205, 0);
   color: white;
-  padding: 8px;
   border: 1px solid white;
-  border-radius: px;
   cursor: pointer;
 }
 
 input[type="submit"]:hover {
-  background-color: rgba(128, 255, 0, 0.673);
+  background-color: rgba(128, 255, 0, 0.838);
+  transform: translateY(-2px);
 }
 input[type="checkbox"] {
-  margin-left: 20px;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-right: 5px;
 }
 span[for="rememberMe"] {
   font-size: 0.8rem;
   font-weight: 200;
-  display: inline;
+  vertical-align: middle;
+}
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  margin-top: -12px;
+ 
 }
 form a {
   color: white;
-  font-weight: 100;
+  font-weight: 200;
   font-size: 0.8rem;
   text-decoration: none;
-  float: right;
-  margin-top: 15px;
+  transition: color 0.3s ease;
+  
+ 
+
 }
 form a:hover {
   color: rgba(128, 255, 0, 0.673);

@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Log In</title>
+    <title>Sign In</title>
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-    <form action="">
+    <form action="" class="login-form">
         <h1>Electra</h1>
         <p>Please Sign in To Manage Charging Stations</p>
 
@@ -17,10 +17,15 @@
         <label for="password">Password</label>
         <input type="password" id="password" name="password" placeholder="Enter your Password" required><br><br>
         
-        <input type="submit" value="Log In">
-        <input type="checkbox" value="checkbox" id="rememberMe"> <span for="rememberMe">Remember Me</span>
-         <a href="reset_password.html">forget password?</a>
-
+        <div class="login-footer">
+            <div>
+                <input type="checkbox" value="checkbox" id="rememberMe">
+                <span for="rememberMe">Remember Me</span>
+            </div>
+            <a href="reset_password.html">forget password?</a>
+        </div>
+        
+        <input type="submit" value="Sign In">
     </form>
 
 </body>
