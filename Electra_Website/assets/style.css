@@ -1,0 +1,98 @@
+@import url("https://fonts.googleapis.com/css2?family=Gruppo&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;700&display=swap");
+
+body {
+  background-color: black;
+  color: white;
+  font-family: poppins;
+}
+form {
+  background-color: hsl(0, 0%, 15%);
+  padding: 15px;
+  border-radius: 5px;
+  width: 420px;
+  height: 470px;
+  margin: 100px auto;
+  border: white 0.8px solid;
+  box-shadow: 0 0 10px rgba(119, 255, 0, 0.284);
+}
+h1 {
+  font-family: "Gruppo", sans-serif;
+  text-align: center;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 5px;
+  font-size: 3rem;
+  color: chartreuse;
+}
+p {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.8rem;
+  font-weight: 200;
+  margin-bottom: 40px;
+  letter-spacing: 1px;
+}
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 200;
+  /* margin-top: -10px; */
+  margin-left: 30px;
+  font-size: 0.8rem;
+}
+span {
+  font-size: 0.8rem;
+}
+input[type="text"],
+input[type="password"] {
+  width: 90%;
+  padding: 7px;
+  /* margin-bottom: 10px; */
+  margin-left: 20px;
+  background-color: black;
+  color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: chartreuse;
+  outline: none;
+}
+
+input[type="submit"] {
+  width: 80%;
+  display: block;
+  margin-left: 50px;
+  background-color: rgb(102, 205, 0);
+  color: white;
+  padding: 8px;
+  border: 1px solid white;
+  border-radius: px;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: rgba(128, 255, 0, 0.673);
+}
+input[type="checkbox"] {
+  margin-left: 20px;
+}
+span[for="rememberMe"] {
+  font-size: 0.8rem;
+  font-weight: 200;
+  display: inline;
+}
+form a {
+  color: white;
+  font-weight: 100;
+  font-size: 0.8rem;
+  text-decoration: none;
+  float: right;
+  margin-top: 15px;
+}
+form a:hover {
+  color: rgba(128, 255, 0, 0.673);
+}
