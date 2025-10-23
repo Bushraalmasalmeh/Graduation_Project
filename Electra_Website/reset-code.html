@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset Password - ELECTRA</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <div class="row min-vh-100 justify-content-center align-items-center">
+            <div class="col-12">
+                <form id="reset-code-form" class="login-form">
+                    <h1>ELECTRA</h1>
+                    
+                    <p class="form-title">Reset Password</p>
+                    
+                    <p class="form-description">
+                        Please enter the verification code sent to your email.
+                    </p>
+
+                    <label for="verification-code-input">Verification Code</label>
+                    <input type="text" id="verification-code-input" name="verification_code" placeholder="Enter Verification Code" required>
+
+                    <input type="submit" value="Reset Password" id="reset-password-button">
+                    
+                    <div class="back-to-login">
+                        <a href="#">Resend Code</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

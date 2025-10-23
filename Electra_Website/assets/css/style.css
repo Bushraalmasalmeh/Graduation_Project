@@ -67,7 +67,7 @@ label {
 
 /* Input field styles */
 input[type="email"], /* Changed from text to email */
-input[type="password"] {
+input[type="password"] ,input[type="text"] {
   width: 90%;
   padding: 10px;
   margin-left: 20px;
@@ -81,7 +81,7 @@ input[type="password"] {
 
 /* Input focus styles */
 input[type="email"]:focus,
-input[type="password"]:focus {
+input[type="password"]:focus, input[type="text"]:focus {
   border-color: chartreuse;
   outline: none;
 }
@@ -149,4 +149,30 @@ input[type="submit"]:hover {
 /* Link hover effect */
 .login-form a:hover {
   color: rgba(128, 255, 0, 0.673);
+}
+
+/* Forget password Page */
+/* Add these styles to the end of your style.css file */
+
+.form-title {
+  font-size: 1.4rem; /* Larger font for the title */
+  font-weight: 400;
+  margin-bottom: 10px;
+  letter-spacing: 0; /* Normal letter spacing for this title */
+}
+
+.form-description {
+  font-weight: 300;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 30px;
+}
+
+.back-to-login {
+  text-align: center;
+  margin-top: 15px;
+}
+.back-to-login a {
+  font-weight: 400;
+  font-size: 0.9rem;
 }
