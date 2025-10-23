@@ -1,0 +1,78 @@
+
+
+/* --- Main Layout --- */
+#wrapper {
+  display: flex;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+  width: 250px;
+  background-color: var(--sidebar-bg);
+  min-height: 100vh;
+}
+
+.sidebar-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-header h3 {
+  font-family: var(--font-logo);
+  color: var(--primary-color);
+  font-size: 2.5rem;
+  letter-spacing: 3px;
+}
+
+.sidebar-nav {
+  list-style: none;
+  padding: 20px 0;
+}
+
+.sidebar-item a {
+  display: block;
+  padding: 12px 20px;
+  color: var(--primary-text);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-item.active a,
+.sidebar-item a:hover {
+  color: var(--primary-color);
+  background-color: rgba(102, 205, 0, 0.1);
+  border-left: 3px solid var(--primary-color);
+}
+
+.sidebar-item a i {
+  margin-right: 15px;
+  width: 20px;
+}
+
+/* --- Main Content Area --- */
+.main-content {
+  flex-grow: 1;
+}
+
+/* --- Top Navbar --- */
+.navbar {
+  background-color: var(--sidebar-bg);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 1.5rem;
+}
+
+.navbar .navbar-brand {
+  color: var(--primary-text);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.navbar .nav-link {
+  color: var(--secondary-text);
+}
+
+.navbar .nav-link:hover {
+  color: var(--primary-color);
+}
+
