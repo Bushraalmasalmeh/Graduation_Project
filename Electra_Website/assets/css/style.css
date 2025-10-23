@@ -1,27 +1,42 @@
+/* Import font families */
 @import url("https://fonts.googleapis.com/css2?family=Gruppo&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;700&display=swap");
 
+/* Root variables for theme customization */
+:root {
+  --primary-color: rgb(102, 205, 0);
+  --background-color: rgb(38, 38, 38);
+  --font-family: Gruppo;
+  --hover-color: rgba(128, 255, 0, 0.838);
+}
+
+/* Global body styles */
 body {
   background-color: black;
   color: white;
   font-family: poppins;
 }
-form {
+
+/* Login form container styles */
+.login-form {
   background-color: hsl(0, 0%, 15%);
   padding: 25px;
   border-radius: 10px;
   width: 420px;
-  height: 470px;
   margin: 100px auto;
   border: white 0.8px solid;
   box-shadow: 0 0 20px rgba(119, 255, 0, 0.2);
   transition: box-shadow 0.3s ease;
 }
-form:hover {
+
+/* Form hover effect */
+.login-form:hover {
   box-shadow: 0 0 30px rgba(119, 255, 0, 0.4);
 }
+
+/* Header styles */
 h1 {
-  font-family: "Gruppo", sans-serif;
+  font-family: var(--font-family);
   text-align: center;
   margin-bottom: 20px;
   text-transform: uppercase;
@@ -29,6 +44,8 @@ h1 {
   font-size: 3rem;
   color: rgb(102, 205, 0);
 }
+
+/* Paragraph styles */
 p {
   text-align: center;
   margin-top: 20px;
@@ -37,17 +54,19 @@ p {
   margin-bottom: 40px;
   letter-spacing: 1px;
 }
+
+/* Form label styles */
 label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
+  margin-top: 10px;
   font-weight: 200;
-  margin-left: 30px;
+  margin-left: 20px; /* Adjusted for alignment */
   font-size: 0.8rem;
 }
-span {
-  font-size: 0.8rem;
-}
-input[type="text"],
+
+/* Input field styles */
+input[type="email"], /* Changed from text to email */
 input[type="password"] {
   width: 90%;
   padding: 10px;
@@ -59,12 +78,15 @@ input[type="password"] {
   box-sizing: border-box;
   transition: all 0.3s ease;
 }
-input[type="text"]:focus,
+
+/* Input focus styles */
+input[type="email"]:focus,
 input[type="password"]:focus {
   border-color: chartreuse;
   outline: none;
 }
 
+/* Interactive elements */
 input[type="submit"] {
   width: 90%;
   display: block;
@@ -80,40 +102,51 @@ input[type="submit"] {
   cursor: pointer;
 }
 
+/* Submit button hover effect */
 input[type="submit"]:hover {
   background-color: rgba(128, 255, 0, 0.838);
   transform: translateY(-2px);
 }
-input[type="checkbox"] {
+
+/* Footer layout and styling */
+.login-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  margin-top: 15px; /* Added margin */
+}
+
+/* Remember me checkbox styling */
+.remember-me-section {
+    display: flex;
+    align-items: center;
+}
+
+.login-form input[type="checkbox"] {
   width: 15px;
   height: 15px;
   cursor: pointer;
   vertical-align: middle;
   margin-right: 5px;
 }
-span[for="rememberMe"] {
+
+.login-form span {
   font-size: 0.8rem;
   font-weight: 200;
   vertical-align: middle;
 }
-.login-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 20px;
-  margin-top: -12px;
- 
-}
-form a {
+
+/* Link styles */
+.login-form a {
   color: white;
   font-weight: 200;
   font-size: 0.8rem;
   text-decoration: none;
   transition: color 0.3s ease;
-  
- 
-
 }
-form a:hover {
+
+/* Link hover effect */
+.login-form a:hover {
   color: rgba(128, 255, 0, 0.673);
 }
