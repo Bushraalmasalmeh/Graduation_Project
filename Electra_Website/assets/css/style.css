@@ -39,9 +39,11 @@ h1 {
   font-family: var(--font-family);
   text-align: center;
   margin-bottom: 20px;
+  margin-top: 10px;
   text-transform: uppercase;
   letter-spacing: 5px;
   font-size: 3rem;
+  font-weight:600;
   color: rgb(102, 205, 0);
 }
 
@@ -152,13 +154,11 @@ input[type="submit"]:hover {
 }
 
 /* Forget password Page */
-/* Add these styles to the end of your style.css file */
-
 .form-title {
-  font-size: 1.4rem; /* Larger font for the title */
-  font-weight: 400;
+  font-size: 1.5rem; 
+  font-weight: 500;
   margin-bottom: 10px;
-  letter-spacing: 0; /* Normal letter spacing for this title */
+  letter-spacing: 0; 
 }
 
 .form-description {
