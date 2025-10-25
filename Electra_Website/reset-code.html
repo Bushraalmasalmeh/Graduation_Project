@@ -1,37 +1,52 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Reset Password - ELECTRA</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-</head>
-<body>
-
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+  <body>
     <div class="container">
-        <div class="row min-vh-100 justify-content-center align-items-center">
-            <div class="col-12">
-                <form id="reset-code-form" class="login-form" style="margin-top: 170px;">
-                  
-                    
-                    <p class="form-title" style="color: var(--primary-color);">Reset Password</p>
-                    
-                    <p class="form-description">
-                        Please enter the verification code sent to your email.
-                    </p>
+      <div class="row min-vh-100 justify-content-center align-items-center">
+        <div class="col-12">
+          <form
+            id="reset-code-form"
+            class="login-form"
+            style="margin-top: 170px;height: auto;"
+          >
+            <p
+              class="form-title"
+              style="color: var(--primary-color); font-weight: 600"
+            >
+              Reset Password
+            </p>
 
-                    <label for="verification-code-input">Verification Code</label>
-                    <input type="text" id="verification-code-input" name="verification_code" placeholder="Enter Verification Code" required>
+            <p class="form-description">
+              Please enter the verification code sent to your email.
+            </p>
 
-                    <input type="submit" value="Reset Password" id="reset-password-button">
-                    
-                    <div class="back-to-login">
-                        <a href="#">Resend Code</a>
-                    </div>
-                </form>
+            <label for="verification-code-input">Verification Code</label>
+            <input
+              type="text"
+              id="verification-code-input"
+              name="verification_code"
+              placeholder="Enter Verification Code"
+              required
+            />
+
+            <input
+              type="submit"
+              value="Reset Password"
+              id="reset-password-button"
+            />
+
+            <div class="back-to-login">
+              <a href="#" style="margin-left: 180px;">Resend Code</a>
             </div>
+          </form>
         </div>
+      </div>
     </div>
-
-</body>
+  </body>
 </html>
