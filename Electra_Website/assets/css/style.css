@@ -246,6 +246,7 @@ input[type="submit"]:hover {
 }
 .text-muted {
   color: #8a9a95 !important;
+  text-align: left;
 }
 /* --- Buttons --- */
 .btn-primary-custom {

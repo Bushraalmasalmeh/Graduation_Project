@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Charger - ELECTRA</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>ELECTRA</h3>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item">
+                    <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                </li>
+                <li class="sidebar-item active"> <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-users"></i><span>Users</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-calendar-check"></i><span>Bookings</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </li>
+            </ul>
+        </aside>
+        <main class="main-content" id="main-content">
+            <nav class="navbar">
+                <div class="container-fluid">
+                    <span class="navbar-brand">Add New Charger</span>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
+                        <li class="nav-item me-3">
+                            <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                        </li>
+                         <li class="nav-item">
+                            <a class="nav-link" href="#"><i class="fas fa-user-circle"></i></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="container-fluid content-inner">
+                <div class="add-form-container">
+                    <form id="add-charger-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="charger-name">Charger Name</label>
+                                <input type="text" id="charger-name" name="charger_name" placeholder="e.g., IT College Charger" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="charger-location">Location</label>
+                                <input type="text" id="charger-location" name="charger_location" placeholder="e.g., Building 5, Floor 1" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="charger-status">Status</label>
+                                <select id="charger-status" name="charger_status" required>
+                                    <option value="available">Available</option>
+                                    <option value="in_use">In Use</option>
+                                    <option value="offline">Offline</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="charger-type">Charger Type</label>
+                                <select id="charger-type" name="charger_type" required>
+                                    <option value="ac">AC (Type 2)</option>
+                                    <option value="dc">DC (CCS)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-end">
+                             <a href="chargers.html" class="btn btn-secondary-custom me-2">Cancel</a>
+                             <input type="submit" class="btn-submit-custom" value="Save Charger">
+                        </div>
+                    </form>
+                </div>
+            </div>
+            </main>
+        </div>
+</body>
+</html>
