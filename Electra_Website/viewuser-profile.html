@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - ELECTRA</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h3>ELECTRA</h3>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item">
+                    <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
+                </li>
+                <li class="sidebar-item active"> <a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-calendar-check"></i><span>Bookings</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+                </li>
+                <li class="sidebar-item">
+                    <a href="#"><i class="fas fa-cog"></i><span>Settings</span></a>
+                </li>
+            </ul>
+        </aside>
+        <main class="main-content" id="main-content">
+            <nav class="navbar">
+                <div class="container-fluid">
+                    <span class="navbar-brand">User Profile</span>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
+                        <li class="nav-item me-3"><a class="nav-link" href="#"><i class="fas fa-bell"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-user-circle"></i></a></li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="container-fluid content-inner">
+                <a href="users.html" class="back-link mb-4"><i class="fas fa-arrow-left me-2"></i>Back to User List</a>
+
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <i class="fas fa-user-circle profile-avatar"></i>
+                                <div class="profile-info">
+                                    <h4 class="profile-name">Islam Noor</h4>
+                                    <p class="profile-email text-muted">islamabukhalaf5@gmail.com</p>
+                                    <span class="status confirmed">Active</span>
+                                </div>
+                            </div>
+                            <hr class="profile-divider">
+                            <div class="profile-details">
+                                <div class="detail-item">
+                                    <span class="detail-label">Role</span>
+                                    <span class="detail-value">Student</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Member Since</span>
+                                    <span class="detail-value">Oct 20, 2025</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Total Bookings</span>
+                                    <span class="detail-value">12</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="profile-card">
+                            <h5 class="card-section-title">Monthly Charging Limit</h5>
+                            <form id="update-limit-form">
+                                <label for="monthly-limit">Set Monthly Hours</label>
+                                <input type="text" id="monthly-limit" name="monthly_limit" value="40h">
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="submit" class="btn btn-primary-custom">Update Limit</button>
+                                </div>
+                            </form>
+                            <hr class="profile-divider">
+                            <h5 class="card-section-title">Account Actions</h5>
+                            <button class="btn btn-danger-custom w-100">Delete User Account</button>
+                        </div>
+                    </div>
+                    </div>
+            </div>
+            </main>
+        </div>
+</body>
+</html>
