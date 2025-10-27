@@ -8,6 +8,8 @@
   width: 250px;
   background-color: var(--sidebar-bg);
   min-height: 100vh;
+   display: flex;
+  flex-direction: column; /* Arrange sections vertically */
 }
 
 .sidebar-header {
@@ -29,7 +31,8 @@
 }
 
 .sidebar-item a {
-  display: block;
+  display: flex; /* CHANGED */
+  align-items: center; /* ADDED */
   padding: 12px 20px;
   color: var(--primary-text);
   text-decoration: none;
@@ -48,6 +51,19 @@
   width: 20px;
 }
 
+/* --- Main Sidebar Structure Adjustment --- */
+.sidebar .sidebar-footer {
+  margin-top: auto; /* Magically pushes this section to the bottom */
+  border-top: 1px solid var(--border-color);
+}
+
+.sidebar .sidebar-footer .sidebar-nav {
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+span{
+  font-size: 1rem;
+}
 /* --- Main Content Area --- */
 .main-content {
   flex-grow: 1;
@@ -73,4 +89,58 @@
 .navbar .nav-link:hover {
   color: var(--primary-color);
 }
+/* --- Settings Sidebar --- */
+.sidebar-settings {
+  display: flex;
+  flex-direction: column; /* Arrange items vertically */
+}
 
+.sidebar-user-profile {
+  padding: 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sidebar-user-profile i {
+  font-size: 4rem;
+  color: var(--primary-color);
+}
+
+.sidebar-user-profile .user-name {
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+  color: var(--primary-text);
+}
+
+.sidebar-user-profile .user-email {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.sidebar-settings .sidebar-nav {
+  flex-grow: 1; /* Pushes the footer down */
+}
+
+.sidebar-footer {
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid var(--border-color);
+}
+
+.logout-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  background-color: rgba(255, 107, 107, 0.1);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #581c1c;
+  color: #fff;
+}

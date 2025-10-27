@@ -520,3 +520,116 @@ input[type="submit"]:hover {
   border-color: var(--primary-color);
   outline: none;
 }
+
+/* --- Reports Page --- */
+.report-card h4.card-text {
+  font-size: 1.75rem; /* Slightly smaller text for report cards */
+  margin-bottom: 0.5rem;
+}
+
+.report-card h4.card-text small {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--secondary-text);
+}
+
+.stat-change {
+  font-size: 0.8rem;
+  color: var(--secondary-text);
+}
+
+.stat-change.positive {
+  color: var(--primary-color);
+}
+
+/* --- Chart Placeholders --- */
+.chart-container {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-title {
+  margin-bottom: 1.5rem;
+  color: var(--secondary-text);
+  font-weight: 500;
+}
+
+
+/* --- Settings Page --- */
+.settings-wrapper {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.settings-nav {
+  width: 200px;
+  flex-shrink: 0;
+  background-color: var(--card-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.settings-nav-item {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--secondary-text);
+  text-decoration: none;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.settings-nav-item.active,
+.settings-nav-item:hover {
+  background-color: rgba(102, 205, 0, 0.1);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.settings-content {
+  flex-grow: 1;
+}
+
+.content-box {
+  background: var(--card-bg);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.content-box-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-item .info-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--secondary-text);
+}
+
+.info-item p {
+  margin: 0;
+  font-weight: 500;
+  font-size: 1rem;
+  text-align: left;
+}
