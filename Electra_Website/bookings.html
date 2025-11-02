@@ -11,40 +11,56 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/main.css">
+        <style>
+        a{
+            text-decoration: none;
+        }
+        a:hover{
+            text-decoration: none;
+            color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="d-flex" id="wrapper">
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>ELECTRA</h3>
-            </div>
-            <ul class="sidebar-nav">
-                <li class="sidebar-item">
-                    <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
-                </li>
-                <li class="sidebar-item"> 
-                    <a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
-                </li>
-                <li class="sidebar-item active"> <a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#"><i class="fas fa-file-alt"></i><span>Reports</span></a>
-                </li>
-                <li class="sidebar-item">
-                    <a href="#"><i class="fas fa-cog"></i><span>Settings</span></a>
-                </li>
-            </ul>
-        </aside>
+         <aside class="sidebar" id="sidebar">
+    <div>
+        <div class="sidebar-header">
+            <h3>ELECTRA</h3>
+        </div>
+        <ul class="sidebar-nav">
+            <li class="sidebar-item">
+                <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a>
+            </li>
+            <li class="sidebar-item">
+                <a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+            </li>
+        </ul>
+    </div>
+    <div class="sidebar-footer">
+        <ul class="sidebar-nav">
+            <li class="sidebar-item">
+                <a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a>
+            </li>
+        </ul>
+    </div>
+    </aside>
         <main class="main-content" id="main-content">
             <nav class="navbar">
                 <div class="container-fluid">
                     <span class="navbar-brand">All Bookings</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="#"><i class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-user-circle"></i></a></li>
+                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i class="fas fa-bell"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-user-circle"></i></a></li>
                     </ul>
                 </div>
             </nav>
@@ -60,7 +76,7 @@
                             <option value="cancelled">Cancelled</option>
                         </select>
                     </div>
-                    <a href="#" class="btn btn-primary-custom"><i class="fas fa-plus me-2"></i>New Booking</a>
+                    <a href="add-new-booking.html" class="btn btn-primary-custom"><i class="fas fa-plus me-2"></i>New Booking</a>
                 </div>
 
                 <table class="table custom-table">
@@ -79,21 +95,21 @@
                             <td>001</td>
                             <td>Oct 25, 2025, 12:00 PM - 1:00 PM</td>
                             <td><span class="status confirmed">Confirmed</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">View</button></td>
+                          <td><a href="view-booking.html"><button class="btn btn-sm btn-secondary-custom">View</button></a></td>
                         </tr>
                         <tr>
                             <td>Fares Ali</td>
                             <td>002</td>
                             <td>Oct 25, 2025, 2:00 PM - 3:00 PM</td>
                             <td><span class="status pending">Completed</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">View</button></td>
+                             <td><a href="view-booking.html"><button class="btn btn-sm btn-secondary-custom">View</button></a></td>
                         </tr>
                          <tr>
                             <td>Ibrahim</td>
                             <td>003</td>
                             <td>Oct 24, 2025, 10:00 AM - 11:00 AM</td>
                             <td><span class="status cancelled">Cancelled</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">View</button></td>
+                             <td><a href="view-booking.html"><button class="btn btn-sm btn-secondary-custom">View</button></a></td>
                         </tr>
                     </tbody>
                 </table>
