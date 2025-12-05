@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     color: '#ffffff'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = 'SignIn_page.html'; // Adjust if your login page name differs
+                        window.location.href = 'index.html'; // Adjust if your login page name differs
                     }
                 });
             });
@@ -263,19 +263,44 @@ function handleChargersTableClick(event) {
 }
 
 function loadUsersData() {
-    console.log('Loading Users...');
+    console.log('Loading Users with Pagination...');
+    
+    // إعدادات التقسيم
+    const rowsPerPage = 3; // عدد المستخدمين في كل صفحة
+    let currentPage = 1;
+    
+    // العناصر
     const tableBody = document.getElementById('users-table-body');
     const searchInput = document.getElementById('search-input');
     const roleFilter = document.getElementById('filter-role');
     const statusFilter = document.getElementById('filter-status');
+    
+    // عناصر التقسيم
+    const pageInfo = document.getElementById('page-info');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
 
+    // دالة الرسم (مع التقسيم)
     function renderTable(data) {
         tableBody.innerHTML = '';
-        if (data.length === 0) {
+        
+        // 1. حساب البداية والنهاية
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        
+        // 2. قص البيانات للصفحة الحالية فقط
+        const paginatedData = data.slice(start, end);
+
+        if (paginatedData.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="6" class="text-center py-4">No users found.</td></tr>';
+            pageInfo.innerText = 'Showing 0 to 0 of 0 results';
+            prevBtn.disabled = true;
+            nextBtn.disabled = true;
             return;
         }
-        data.forEach(user => {
+
+        // 3. عرض البيانات
+        paginatedData.forEach(user => {
             tableBody.innerHTML += `
                 <tr id="user-row-${user.id}">
                     <td>${user.name}</td><td>${user.email}</td><td>${user.role}</td>
@@ -288,39 +313,85 @@ function loadUsersData() {
                 </tr>`;
         });
         
+        // 4. تحديث معلومات الصفحة والأزرار
+        pageInfo.innerText = `Showing ${start + 1} to ${Math.min(end, data.length)} of ${data.length} results`;
+        
+        // تعطيل زر Previous إذا كنا في الصفحة الأولى
+        prevBtn.disabled = currentPage === 1;
+        
+        // تعطيل زر Next إذا وصلنا لآخر صفحة
+        nextBtn.disabled = end >= data.length;
+
+        // تفعيل أزرار الحذف (كما سبق)
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                Swal.fire({
-                    title: 'Delete User?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33',
-                    confirmButtonText: 'Yes, delete!', background: '#1a1a1a', color: '#ffffff'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        this.closest('tr').remove();
-                        Swal.fire('Deleted!', 'User deleted (UI Only).', 'success');
-                    }
-                });
+                Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', confirmButtonText: 'Yes, delete!', background: '#1a1a1a', color: '#ffffff' })
+                .then((result) => { if (result.isConfirmed) { this.closest('tr').remove(); Swal.fire('Deleted!', '', 'success'); } });
             });
         });
     }
 
-    function filterUsers() {
+    // دالة الفلترة والبحث
+    function filterAndRender() {
         const term = searchInput.value.toLowerCase();
         const role = roleFilter.value;
         const status = statusFilter.value;
 
-        const filtered = allUsersData.filter(user => {
+        // تصفية البيانات الأصلية
+        const filteredData = allUsersData.filter(user => {
             const matchesSearch = user.name.toLowerCase().includes(term) || user.email.toLowerCase().includes(term);
             const matchesRole = role === 'all' || user.role === role;
             const matchesStatus = status === 'all' || user.status === status;
             return matchesSearch && matchesRole && matchesStatus;
         });
-        renderTable(filtered);
+
+        // رسم الجدول بالبيانات المفلترة
+        renderTable(filteredData);
+        
+        // ملاحظة: عند الفلترة نعيد الصفحة للأولى لتجنب الأخطاء
+        // لكننا هنا سنعتمد على المتغيرات الحالية داخل النطاق
+        return filteredData; // نرجع البيانات لنستخدمها في أزرار التنقل
     }
 
-    if(searchInput) searchInput.addEventListener('input', filterUsers);
-    if(roleFilter) roleFilter.addEventListener('change', filterUsers);
-    if(statusFilter) statusFilter.addEventListener('change', filterUsers);
+    // الحصول على البيانات الحالية (بعد الفلترة)
+    function getCurrentData() {
+        const term = searchInput.value.toLowerCase();
+        const role = roleFilter.value;
+        const status = statusFilter.value;
+        return allUsersData.filter(user => {
+            return (user.name.toLowerCase().includes(term) || user.email.toLowerCase().includes(term)) &&
+                   (role === 'all' || user.role === role) && 
+                   (status === 'all' || user.status === status);
+        });
+    }
 
+    // ربط أحداث أزرار التنقل
+    prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable(getCurrentData());
+        }
+    });
+
+    nextBtn.addEventListener('click', () => {
+        const currentData = getCurrentData();
+        if ((currentPage * rowsPerPage) < currentData.length) {
+            currentPage++;
+            renderTable(currentData);
+        }
+    });
+
+    // إعادة الصفحة لرقم 1 عند البحث أو الفلترة
+    function resetAndFilter() {
+        currentPage = 1;
+        filterAndRender();
+    }
+
+    if(searchInput) searchInput.addEventListener('input', resetAndFilter);
+    if(roleFilter) roleFilter.addEventListener('change', resetAndFilter);
+    if(statusFilter) statusFilter.addEventListener('change', resetAndFilter);
+
+    // التشغيل الأولي
     renderTable(allUsersData);
 }
 

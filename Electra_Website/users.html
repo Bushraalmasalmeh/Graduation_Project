@@ -29,7 +29,7 @@
                     <li class="sidebar-item">
                         <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
                     </li>
-                    <li class="sidebar-item">
+                    <li class="sidebar-item active">
                         <a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
                     </li>
                     <li class="sidebar-item">
@@ -108,12 +108,15 @@
                 </table>
 
                 <div class="pagination-container mt-4">
-                    <span class="pagination-info">Showing 1 to 3 of 10 results</span>
-                    <div class="pagination-buttons">
-                        <button class="btn btn-secondary-custom d-flex align-items-center" disabled><i
-                                class="fas fa-arrow-left me-2"></i>Previous</button>
-                        <button class="btn btn-secondary-custom d-flex align-items-center ms-2">Next<i
-                                class="fas fa-arrow-right ms-2"></i></button>
+                    <span id="page-info" class="pagination-info">Showing 0 to 0 of 0 results</span>
+
+                    <div class="pagination-buttons" style="display: flex;">
+                        <button id="prev-btn" class="btn btn-secondary-custom d-flex align-items-center" disabled>
+                            <i class="fas fa-arrow-left me-2"></i>Previous
+                        </button>
+                        <button id="next-btn" class="btn btn-secondary-custom d-flex align-items-center ms-2">
+                            Next<i class="fas fa-arrow-right ms-2"></i>
+                        </button>
                     </div>
                 </div>
             </div>
