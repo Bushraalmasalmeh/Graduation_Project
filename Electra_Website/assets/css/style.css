@@ -276,6 +276,16 @@ input[type="submit"]:hover {
   background-color: #8b0000;
   color: #fff;
 }
+/* resolved btn */
+.btn-success-custom {
+    background-color: #1e3c35;
+    border: 1px solid #5fcc9c;
+    color: #5fcc9c;
+}
+.btn-success-custom:hover {
+    background-color: #5fcc9c;
+    color: #000;
+}
 /* Status badges */
 .status {
   display: inline-block;

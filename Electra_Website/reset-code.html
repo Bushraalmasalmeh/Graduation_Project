@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reset Password - ELECTRA</title>
+    <title>Reset Password</title>
+      <link rel="icon" href="assets/images/logo.png" type="image/png"></link>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="assets/css/style.css" />
   </head>
   <body>
@@ -26,10 +28,10 @@
               Please enter the verification code sent to your email.
             </p>
 
-            <label for="verification-code-input">Verification Code</label>
+            <label for="verification-code">Verification Code</label>
             <input
               type="text"
-              id="verification-code-input"
+              id="verification-code"
               name="verification_code"
               placeholder="Enter Verification Code"
               required
@@ -48,5 +50,6 @@
         </div>
       </div>
     </div>
+    <script src="assets/js/auth.js"></script>
   </body>
 </html>

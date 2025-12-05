@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <!-- Meta tags for responsive design -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
+    </link>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
     <!-- Login form container -->
-    <form action="" class="login-form">
+    <form id="login-form" action="" class="login-form">
         <!-- Brand header -->
-        <h1 >Electra</h1>
+        <h1>Electra</h1>
         <p>Please Sign in To Manage Charging Stations</p>
 
         <!-- Login form fields -->
@@ -19,7 +24,7 @@
         <input type="email" id="email" name="email" placeholder="Enter your Email" required><br><br>
         <label for="password">Password</label>
         <input type="password" id="password" name="password" placeholder="Enter your Password" required><br><br>
-        
+
         <!-- Remember me and forgot password section -->
         <div class="login-footer">
             <div>
@@ -28,9 +33,11 @@
             </div>
             <a href="forget-password.html">forget password?</a>
         </div>
-        
+
         <!-- Submit button -->
         <input type="submit" value="Sign In">
     </form>
+    <script src="assets/js/auth.js"></script>
 </body>
+
 </html>

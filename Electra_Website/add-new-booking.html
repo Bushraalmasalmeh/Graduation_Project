@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Booking</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png"></link>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+</head>
+
+<body>
+    <div class="d-flex" id="wrapper">
+        <aside class="sidebar" id="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <h3>ELECTRA</h3>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item"><a href="dashboard.html"><i
+                                class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="sidebar-item"><a href="chargers.html"><i
+                                class="fas fa-charging-station"></i><span>Chargers</span></a></li>
+                    <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
+                    </li>
+                    <li class="sidebar-item active"><a href="bookings.html"><i
+                                class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
+                    <li class="sidebar-item"><a href="reports.html"><i
+                                class="fas fa-file-alt"></i><span>Reports</span></a></li>
+                </ul>
+            </div>
+            <div class="sidebar-footer">
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item"><a href="settings-account.html"><i
+                                class="fas fa-cog"></i><span>Settings</span></a></li>
+                </ul>
+            </div>
+        </aside>
+        <main class="main-content" id="main-content">
+            <nav class="navbar">
+                <div class="container-fluid">
+                    <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="navbar-brand">Add New Booking</span>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
+                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i
+                                    class="fas fa-bell"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
+                                    class="fas fa-user-circle"></i></a></li>
+                    </ul>
+                </div>
+            </nav>
+            <div class="container-fluid content-inner">
+                <div class="add-form-container">
+                    <form id="add-booking-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="booking-user">Select User</label>
+                                <select id="booking-user" name="booking_user" required>
+                                    <option value="" disabled selected>Search for a user...</option>
+                                    <option value="1">Islam Noor</option>
+                                    <option value="2">Fares AlH</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="booking-station">Select Station</label>
+                                <select id="booking-station" name="booking_station" required>
+                                    <option value="" disabled selected>Choose a station...</option>
+                                    <option value="101">Station 001 - Health Center</option>
+                                    <option value="102">Station 002 - IT College</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="booking-date">Date</label>
+                                <input type="date" id="booking-date" name="booking_date" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="booking-status">Status</label>
+                                <select id="booking-status" name="booking_status" required>
+                                    <option value="confirmed">Confirmed</option>
+                                    <option value="pending">Pending</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="booking-start-time">Start Time</label>
+                                <input type="time" id="booking-start-time" name="booking_start_time" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="booking-end-time">End Time</label>
+                                <input type="time" id="booking-end-time" name="booking_end_time" required>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-end">
+                            <a href="bookings.html" class="btn btn-secondary-custom me-2">Cancel</a>
+                            <input type="submit" class="btn-submit-custom" value="Save Booking">
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

@@ -61,12 +61,17 @@
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
+.navbar .nav-link i {
+    font-size: 1.4rem; 
+    transition: transform 0.2s ease; 
+}
 span{
   font-size: 1rem;
 }
 /* --- Main Content Area --- */
 .main-content {
   flex-grow: 1;
+  
 }
 
 /* --- Top Navbar --- */
@@ -74,6 +79,7 @@ span{
   background-color: var(--sidebar-bg);
   border-bottom: 1px solid var(--border-color);
   padding: 1rem 1.5rem;
+  height: 97px;
 }
 
 .navbar .navbar-brand {
@@ -143,4 +149,39 @@ span{
 .logout-btn:hover {
   background-color: #581c1c;
   color: #fff;
+}
+/* --- Responsive Sidebar Styles --- */
+
+@media (max-width: 992px) {
+    
+    #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        width: 250px;
+        z-index: 1050; /* رقم عالي جداً ليظهر فوق كل شيء */
+        
+        /* إخفاء الشريط بتحريكه خارج الشاشة */
+        transform: translateX(-100%); 
+        transition: transform 0.3s ease-in-out;
+        
+        /* إعادة تعيين بعض الخصائص */
+        margin-left: 0 !important; 
+    }
+
+    /* عند تفعيل الكلاس، أعد الشريط لمكانه */
+    #wrapper.toggled #sidebar {
+        transform: translateX(0);
+    }
+
+    /* الخلفية المعتمة */
+    #wrapper.toggled::before {
+        content: "";
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 1040; /* تحت السايدبار مباشرة */
+        backdrop-filter: blur(3px);
+    }
 }

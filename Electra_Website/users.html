@@ -1,78 +1,92 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management - ELECTRA</title>
-    
+    <title>User Management</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
+    </link>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
+
 <body>
     <div class="d-flex" id="wrapper">
-       <aside class="sidebar" id="sidebar">
-    <div>
-        <div class="sidebar-header">
-            <h3>ELECTRA</h3>
-        </div>
-        <ul class="sidebar-nav">
-            <li class="sidebar-item">
-                <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
-            </li>
-            <li class="sidebar-item">
-                <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
-            </li>
-            <li class="sidebar-item">
-                <a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
-            </li>
-            <li class="sidebar-item">
-                <a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a>
-            </li>
-            <li class="sidebar-item">
-                <a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a>
-            </li>
-        </ul>
-    </div>
-    <div class="sidebar-footer">
-        <ul class="sidebar-nav">
-            <li class="sidebar-item">
-                <a href="settings-account.html"><i class="fas fa-cog"></i><span>Settings</span></a>
-            </li>
-        </ul>
-    </div>
-    </aside>
+        <aside class="sidebar" id="sidebar">
+            <div>
+                <div class="sidebar-header">
+                    <h3>ELECTRA</h3>
+                </div>
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+                    </li>
+                    <li class="sidebar-item">
+                        <a href="support.html"><i class="fas fa-envelope-open-text"></i><span>Inbox</span></a>
+                </ul>
+            </div>
+            <div class="sidebar-footer">
+                <ul class="sidebar-nav">
+                    <li class="sidebar-item">
+                        <a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a>
+                    </li>
+                </ul>
+            </div>
+        </aside>
         <main class="main-content" id="main-content">
             <nav class="navbar">
                 <div class="container-fluid">
+                    <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <span class="navbar-brand">User Management</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="#"><i class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="#"><i class="fas fa-user-circle"></i></a></li>
+                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i
+                                    class="fas fa-bell"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
+                                    class="fas fa-user-circle"></i></a></li>
                     </ul>
                 </div>
             </nav>
             <div class="container-fluid content-inner">
-                <p class="text-muted mb-4" style="text-align: left;">Manage user accounts, charging limits and access permissions.</p>
+                <p class="text-muted mb-4" style="text-align: left;">Manage user accounts, charging limits and access
+                    permissions.</p>
 
-              <div class="controls-container mb-4">
+                <div class="controls-container mb-4">
                     <div class="search-bar-container">
                         <i class="fas fa-search search-icon"></i>
-                        <input type="text" class="search-input" placeholder="Search users by name or email...">
+                        <input type="text" id="search-input" class="search-input"
+                            placeholder="Search users by name or email...">
                     </div>
+
                     <div class="filters-container">
-                        <select class="filter-select me-2">
-                            <option selected>Filter by Role</option>
-                            <option value="student">Student</option>
-                            <option value="staff">Staff</option>
+                        <select id="filter-role" class="filter-select me-2">
+                            <option value="all" selected>All Roles</option>
+                            <option value="Student">Student</option>
+                            <option value="Staff">Staff</option>
                         </select>
-                        <select class="filter-select">
-                            <option selected>Filter by Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+
+                        <select id="filter-status" class="filter-select">
+                            <option value="all" selected>All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
                         </select>
                     </div>
                 </div>
@@ -83,65 +97,29 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Ticket ID</th>
-                            <th>Monthly Hours</th>
+                            <th class="text-center">Monthly Hours</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="users-table-body">
-                        <tr>
-                            <td>Islam Noor</td>
-                            <td>islamabukhalaf5@gmail.com</td>
-                            <td>Student</td>
-                            <td>111</td>
-                            <td>40h</td>
-                            <td><span class="status confirmed">Active</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">
-                                <a href="viewuser-profile.html" style="text-decoration: none; color: white;">
-                                View Profile</button>
-                            </a></td>
-                        </tr>
-                            <tr>
-                            <td>Bushra</td>
-                            <td>Bushra@gmail.com</td>
-                            <td>Student</td>
-                            <td>114</td>
-                            <td>12h</td>
-                            <td><span class="status confirmed">Active</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">View Profile</button></td>
-                        </tr>
-                        <tr>
-                            <td>Fares AlH</td>
-                            <td>Fares.alh.jaradat@gmail.com</td>
-                            <td>Staff</td>
-                            <td>112</td>
-                            <td>4h</td>
-                            <td><span class="status confirmed">Active</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">View Profile</button></td>
-                        </tr>
-                         <tr>
-                            <td>Ibarhim</td>
-                            <td>Ibarhim@gmail.com</td>
-                            <td>Student</td>
-                            <td>113</td>
-                            <td>12h</td>
-                            <td><span class="status cancelled">Inactive</span></td>
-                            <td><button class="btn btn-sm btn-secondary-custom">View Profile</button></td>
-                        </tr>
-                     
+
                     </tbody>
                 </table>
-                
-               <div class="pagination-container mt-4">
+
+                <div class="pagination-container mt-4">
                     <span class="pagination-info">Showing 1 to 3 of 10 results</span>
                     <div class="pagination-buttons">
-                        <button class="btn btn-secondary-custom d-flex align-items-center" disabled><i class="fas fa-arrow-left me-2"></i>Previous</button>
-                        <button class="btn btn-secondary-custom d-flex align-items-center ms-2">Next<i class="fas fa-arrow-right ms-2"></i></button>
+                        <button class="btn btn-secondary-custom d-flex align-items-center" disabled><i
+                                class="fas fa-arrow-left me-2"></i>Previous</button>
+                        <button class="btn btn-secondary-custom d-flex align-items-center ms-2">Next<i
+                                class="fas fa-arrow-right ms-2"></i></button>
                     </div>
                 </div>
             </div>
-            </main>
-        </div>
+        </main>
+    </div>
+    <script src="assets/js/app.js"></script>
 </body>
+
 </html>
