@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     color: '#ffffff'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        window.location.href = 'SignIn_page.html'; // Adjust if your login page name differs
+                        window.location.href = 'index.html'; // Adjust if your login page name differs
                     }
                 });
             });
