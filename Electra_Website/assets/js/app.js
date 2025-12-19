@@ -90,7 +90,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('support-table-body')) {
         loadSupportData();
     }
-
+    
+    if (document.getElementById('compose-notification-form')) { 
+        setupNotificationPage(); 
+    }
     // --- Account Settings Save ---
     const saveProfileBtn = document.getElementById('save-profile-btn');
     if (saveProfileBtn) {
@@ -591,4 +594,154 @@ function loadReportsData() {
         },
         options: { responsive: true, plugins: { legend: { labels: { color: '#a0b0ab' } } }, scales: { y: { grid: { color: '#2a3b3b' }, ticks: { color: '#a0b0ab' } }, x: { grid: { display: false }, ticks: { color: '#a0b0ab' } } } }
     });
+}
+// notification page setup
+function setupNotificationPage() {
+    console.log('✅ Notification Logic Loaded');
+
+    // تعريف العناصر حسب الـ IDs الموجودة في كود HTML الخاص بك
+    const form = document.getElementById('compose-notification-form');
+    const titleInput = document.getElementById('notif-title');
+    const messageInput = document.getElementById('notif-message');
+    
+    // أزرار الراديو (Target Audience)
+    const allUsersRadio = document.getElementById('all-users');
+    const specificGroupRadio = document.getElementById('specific-group');
+    
+    // القسم المخفي والقائمة
+    const specificUserDiv = document.getElementById('specific-user-div');
+    const usersListContainer = document.getElementById('users-list-container');
+    const searchInput = document.getElementById('user-search-input');
+    const selectAllCheckbox = document.getElementById('select-all-users');
+
+    // 1. تعبئة قائمة المستخدمين (Create Checkboxes)
+    function populateUsersList() {
+        usersListContainer.innerHTML = ''; // تفريغ القائمة
+        allUsersData.forEach(user => {
+            usersListContainer.innerHTML += `
+                <div class="form-check mb-1 user-item">
+                    <input class="form-check-input user-checkbox" type="checkbox" value="${user.name}" id="user-${user.id}">
+                    <label class="form-check-label text-white small" for="user-${user.id}">
+                        ${user.name} <span class="text-muted" style="font-size:0.8em">(${user.role})</span>
+                    </label>
+                </div>`;
+        });
+    }
+    // استدعاء الدالة فوراً لتجهيز القائمة
+    populateUsersList();
+
+    // 2. منطق الإظهار والإخفاء (Show/Hide Logic)
+    function handleRadioChange() {
+        if (specificGroupRadio.checked) {
+            specificUserDiv.style.display = 'block'; // إظهار القائمة
+        } else {
+            specificUserDiv.style.display = 'none';  // إخفاء القائمة
+        }
+    }
+
+    // ربط الحدث بضغطات الأزرار (click & change لضمان الاستجابة)
+    if (allUsersRadio && specificGroupRadio) {
+        allUsersRadio.addEventListener('change', handleRadioChange);
+        specificGroupRadio.addEventListener('change', handleRadioChange);
+        // إضافة click أيضاً لضمان العمل في بعض المتصفحات
+        allUsersRadio.addEventListener('click', handleRadioChange);
+        specificGroupRadio.addEventListener('click', handleRadioChange);
+    }
+
+    // 3. منطق البحث (Filter Users)
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const filterText = this.value.toLowerCase();
+            const items = document.querySelectorAll('.user-item');
+            
+            items.forEach(item => {
+                const text = item.innerText.toLowerCase();
+                if (text.includes(filterText)) {
+                    item.style.display = ''; // إظهار
+                } else {
+                    item.style.display = 'none'; // إخفاء
+                }
+            });
+        });
+    }
+
+    // 4. تحديد الكل (Select All)
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            // نحدد فقط العناصر الظاهرة (في حال كان هناك بحث)
+            const visibleCheckboxes = document.querySelectorAll('.user-item:not([style*="display: none"]) .user-checkbox');
+            visibleCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+    }
+
+    // 5. عند الضغط على زر الإرسال (Submit Form)
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // التحقق من الحقول الفارغة
+            if (!titleInput.value.trim() || !messageInput.value.trim()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Missing Information',
+                    text: 'Please enter a Title and a Message.',
+                    background: '#1a1a1a', color: '#ffffff'
+                });
+                return;
+            }
+
+            // تحديد المستلمين
+            let recipientCount = 0;
+            let recipientText = "";
+
+            if (allUsersRadio.checked) {
+                recipientCount = allUsersData.length;
+                recipientText = "All Users";
+            } else {
+                // حساب عدد المختارين من القائمة
+                const checkedBoxes = document.querySelectorAll('.user-checkbox:checked');
+                recipientCount = checkedBoxes.length;
+                recipientText = `${recipientCount} Specific Users`;
+
+                if (recipientCount === 0) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'No Users Selected',
+                        text: 'Please select at least one user from the list.',
+                        background: '#1a1a1a', color: '#ffffff'
+                    });
+                    return;
+                }
+            }
+
+            // محاكاة عملية الإرسال
+            Swal.fire({
+                title: 'Sending Notification...',
+                html: `To: <strong>${recipientText}</strong>`,
+                timer: 1500,
+                timerProgressBar: true,
+                didOpen: () => { Swal.showLoading(); },
+                background: '#1a1a1a', color: '#ffffff'
+            }).then(() => {
+                // رسالة النجاح
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sent Successfully!',
+                    text: `Notification sent to ${recipientText}.`,
+                    confirmButtonColor: '#66cd00',
+                    background: '#1a1a1a', color: '#ffffff'
+                });
+
+                // إعادة تعيين النموذج (Reset)
+                form.reset();
+                specificUserDiv.style.display = 'none'; // إخفاء القائمة
+                allUsersRadio.checked = true; // إعادة الراديو للوضع الافتراضي
+                
+                // إعادة تفريغ الـ Checkboxes
+                document.querySelectorAll('.user-checkbox').forEach(c => c.checked = false);
+            });
+        });
+    }
 }
