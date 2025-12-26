@@ -1,0 +1,172 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\CreateBookingRequest;
+use App\Http\Requests\Api\CancelBookingRequest;
+use App\Models\Booking;
+use App\Models\Cabinet;
+use App\Models\Charger;
+use App\Models\ChargerStation;
+use App\Models\Setting;
+use App\Services\NotificationService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class BookingController extends Controller
+{
+    protected $notificationService;
+
+    public function __construct(NotificationService $notificationService)
+    {
+        $this->notificationService = $notificationService;
+    }
+
+    public function index()
+    {
+        $user = request()->user();
+        $bookings = Booking::with(['station', 'cabinet', 'charger'])
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json(['bookings' => $bookings]);
+    }
+
+    public function store(CreateBookingRequest $request)
+    {
+        $user = $request->user();
+        $now = now();
+
+        return DB::transaction(function () use ($request, $user, $now) {
+
+            // 1. Daily Limit Check (NOW INSIDE TRANSACTION)
+            $alreadyBooked = Booking::where('user_id', $user->id)
+                ->whereDate('start_time', $now->toDateString())
+                ->whereIn('status', ['pending', 'active', 'completed'])
+                ->lockForUpdate() // 
+                ->exists();
+
+            if ($alreadyBooked) {
+                return response()->json([
+                    'message' => 'Sorry, only one booking per day is allowed.',
+                    'code'    => 'DAILY_LIMIT_REACHED'
+                ], 422);
+            }
+
+            // 2. Availability Check
+            $station = ChargerStation::where('station_name', $request->station_name)
+                ->where('status', 'active')
+                ->first();
+
+            if (!$station) return response()->json(['message' => 'Station not found.'], 404);
+
+            $cabinet = Cabinet::where('station_id', $station->id)
+                ->where('status', 'available')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$cabinet) return response()->json(['message' => 'No available cabinets.'], 422);
+
+            $charger = Charger::where('cabinet_id', $cabinet->id)
+                ->where('status', 'available')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$charger) return response()->json(['message' => 'No available chargers.'], 422);
+
+            // 3. Working Hours Check (7 AM - 8 PM)
+            $startTime = Carbon::parse($request->start_time);
+            $localStart = $startTime->copy()->setTimezone('Asia/Amman');
+            $startUtc = $startTime->copy()->setTimezone('UTC');
+            if ($localStart->hour < 7 || $localStart->hour >= 20) {
+                return response()->json([
+                    "message" => "Booking must be between 07:00 AM and 08:00 PM.",
+                    "code"    => "OUT_OF_WORKING_HOURS"
+                ], 422);
+            }
+
+            // 4. Create Booking
+            $booking = Booking::create([
+                'user_id'    => $user->id,
+                'station_id' => $station->id,
+                'cabinet_id' => $cabinet->id,
+                'charger_id' => $charger->id,
+                'UID'        => $charger->uid,
+                'start_time' => $startTime,
+                'end_time'   => $startTime->copy()->addMinutes($request->duration_minutes),
+                'duration'   => $request->duration_minutes,
+                'status'     => 'pending',
+            ]);
+
+            // Set charger to busy
+            $charger->update(['status' => 'busy']);
+
+            try {
+                $this->notificationService->bookingCreated($booking);
+            } catch (\Exception $e) {
+                Log::error("Notification failed for booking {$booking->id}: " . $e->getMessage());
+            }
+
+            return response()->json([
+                "message"     => "booking created successfully",
+                "uid"         => $booking->UID,
+                "booking_id"  => $booking->id,
+                "cabinet_id"  => $booking->cabinet_id,
+                "charger_id"  => $booking->charger_id,
+                "user_id"     => $booking->user_id,
+                "start_time"  => $booking->start_time->copy()->setTimezone('Asia/Amman')->toIso8601String(),
+                "duration"    => $booking->duration,
+                "status"      => $booking->status,
+                "updated_at"  => $booking->updated_at->toIso8601String(),
+                "created_at"  => $booking->created_at->toIso8601String(),
+            ], 200);
+        });
+    }
+
+    public function cancel(CancelBookingRequest $request)
+    {
+        $user = $request->user();
+
+        $booking = Booking::where('user_id', $user->id)
+            ->whereDate('start_time', Carbon::today())
+            ->whereIn('status', ['pending', 'confirmed'])
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$booking) {
+            return response()->json(['message' => 'No eligible booking found.'], 404);
+        }
+
+        // Updating status triggers the 'booted' method in the Model to free the charger
+        $booking->update(['status' => 'cancelled']);
+        $booking->save();
+
+        try {
+            $this->notificationService->toUser($user, 'Booking Cancelled', 'Charger is now free.', 'booking');
+        } catch (\Exception $e) {
+            Log::error("Notification failed: " . $e->getMessage());
+        }
+
+        return response()->json(['message' => 'Booking cancelled successfully.'], 200);
+    }
+
+    public function stopMobile(Request $request)
+    {
+        $request->validate(['booking_id' => 'required|exists:bookings,id']);
+        $booking = Booking::with('charger')->find($request->booking_id);
+
+        if (!$booking || $booking->status !== 'active') {
+            return response()->json(['message' => 'No active session found.'], 422);
+        }
+
+        return DB::transaction(function () use ($booking) {
+            $booking->update(['status' => 'completed']);
+            // Charger update is handled by Model booted method
+            return response()->json(['message' => 'Charging stopped successfully.'], 200);
+        });
+    }
+}
