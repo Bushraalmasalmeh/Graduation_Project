@@ -1,0 +1,21 @@
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# Operating System Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build and Temporary files (General)
+*.log
+*.tmp
+*.bak
+
+# Hardware/Arduino general ignores
+build/
+bin/
