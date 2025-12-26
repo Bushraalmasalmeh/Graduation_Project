@@ -1,0 +1,159 @@
+{
+  "info": {
+    "_postman_id": "e3c2f3aa-2411-4e46-9b20-8f18160a8122",
+    "name": "ELECTRA API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/register",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","register"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Fares\",\n    \"email\": \"fares@gmail.com\",\n    \"password\": \"Fares04$\",\n    \"job_number\": \"9001\",\n    \"department\": \"IT\",\n    \"role_type\": \"user\",\n    \"car_model\": \"BYD\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/login",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","login"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"fares@gmail.com\",\n    \"password\": \"Fares04$\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Auth → Me",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/auth/me",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","auth","me"]
+        }
+      }
+    },
+    {
+      "name": "Profile → Update",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Accept","value": "application/json"},
+          {"key": "Content-Type","value": "application/json"},
+          {"key": "Authorization","value": "Bearer {{token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/profile/update",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","profile","update"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"Fares Jaradat\",\n    \"car_model\": \"Tesla Model 3\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Profile → Upload Avatar",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept","value": "application/json"},
+          {"key": "Authorization","value": "Bearer {{token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/profile/avatar",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","profile","avatar"]
+        },
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "avatar",
+              "type": "file",
+              "src": "/Users/yourUser/Desktop/avatar.jpg" 
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Profile → Change Password",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {"key": "Accept","value": "application/json"},
+          {"key": "Content-Type","value": "application/json"},
+          {"key": "Authorization","value": "Bearer {{token}}"}
+        ],
+        "url": {
+          "raw": "http://127.0.0.1:8000/api/profile/change-password",
+          "protocol": "http",
+          "host": ["127","0","0","1"],
+          "port": "8000",
+          "path": ["api","profile","change-password"]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"current_password\": \"Fares04$\",\n    \"new_password\": \"NewPassword123\"\n}"
+        }
+      }
+    }
+  ]
+}
