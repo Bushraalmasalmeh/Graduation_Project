@@ -37,14 +37,20 @@ class ContactController extends Controller
             'message' => $request->message,
             'status'  => 'open'
         ]);
-        // Send notification to admin
-        $this->notificationService->supportMessageReceived($msg);
+
+        // ✅ Notify admins
+        $this->notificationService->notifyAdmins(
+            'Contact Message Received',
+            'From ' . $msg->phone . ': ' . $msg->message,
+            'support'
+        );
 
         return response()->json([
             'message' => 'support_message_sent',
             'data'    => $msg
         ], 200);
     }
+
 
 
     public function myMessages(): JsonResponse

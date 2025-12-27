@@ -43,4 +43,11 @@ class AdminBookingController extends Controller
             'booking' => $booking
         ], 201);
     }
+    public function cancel($id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->update(['status' => 'cancelled']);
+
+        return response()->json(['status' => 'success', 'message' => 'Booking cancelled']);
+    }
 }

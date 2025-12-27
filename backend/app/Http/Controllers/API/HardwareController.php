@@ -11,11 +11,14 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\NotificationService;
 
 class HardwareController extends Controller
 {
-    public function __construct()
+    protected NotificationService $notificationService;
+    public function __construct(NotificationService $notificationService)
     {
+        $this->notificationService = $notificationService;
         // Force Jordan timezone for all date operations
         date_default_timezone_set('Asia/Amman');
         Carbon::setLocale('en');
@@ -155,8 +158,15 @@ class HardwareController extends Controller
                 'user' => $user->name,
                 'charger' => $charger->UID,
                 'start_time' => $now->format('Y-m-d H:i:s')
+
             ]);
 
+            $this->notificationService->notifyUser(
+                $user->id,
+                'Charging Started',
+                'Your charging session has started.',
+                'session'
+            );
             return response()->json([
                 'status'    => 'success',
                 'message'   => 'START_CONFIRMED',
@@ -218,11 +228,17 @@ class HardwareController extends Controller
                 'actual_end_time' => $now->toDateTimeString()
             ]);
 
+
             // تحديث حالة الشاحن
             if ($session->charger) {
                 $session->charger->update(['status' => 'available']);
             }
-
+            $this->notificationService->notifyUser(
+                $session->user_id,
+                'Charging Ended',
+                'Your charging session has ended.',
+                'session'
+            );
             return response()->json([
                 'message' => 'SESSION_STOPPED_SUCCESSFULLY',
                 'success' => true,

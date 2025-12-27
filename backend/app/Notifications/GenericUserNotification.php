@@ -24,8 +24,10 @@ class GenericUserNotification extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+
+        return $notifiable->email ? ['mail', 'database'] : ['database'];
     }
+
 
     public function toMail($notifiable): MailMessage
     {

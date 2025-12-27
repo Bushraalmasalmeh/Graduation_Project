@@ -27,6 +27,9 @@ use App\Http\Controllers\NotificationController as ControllersNotificationContro
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/profile/change-password', [UserController::class, 'changePassword']);
+Route::post('/profile/logout-all', [UserController::class, 'logoutAll']);
+
 Route::get('/stations', [StationController::class, 'index']);
 Route::get('/stations/{id}', [StationController::class, 'show']);
 
@@ -52,7 +55,7 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
 
     // Bookings
     Route::get('/bookings', [BookingController::class, 'index']);
-    Route::post('/bookings', [BookingController::class, 'store']);
+    Route::post('/bookings/create', [BookingController::class, 'store']);
     Route::post('/bookings/cancel', [BookingController::class, 'cancel']);
 
     // Sessions
@@ -60,7 +63,11 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
     Route::get('/session/history', [SessionHistoryController::class, 'index']);
 
     // Notifications
-
+    Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
+        Route::get('/notifications', [NotificationController::class, 'index']);
+        Route::post('/notifications/test', [NotificationController::class, 'test']);
+        Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
+    });
 
 
     // Contact
@@ -71,26 +78,25 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
 // ==================== ADMIN ROUTES ====================
 
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/me', [AuthController::class, 'adminProfile']);
+
     // Dashboard
     Route::get('/dashboard', [AdminDashboardController::class, 'overview']);
+    Route::get('/reports/summary', [AdminDashboardController::class, 'reportSummary']);
 
     // Users
     Route::get('/users', [AdminUserController::class, 'index']);
-    Route::post('/users', [AdminUserController::class, 'store']);
+    Route::post('/users/create', [AdminUserController::class, 'store']);
     Route::put('/users/{id}', [AdminUserController::class, 'update']);
     Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
 
     // Stations
     Route::get('/stations', [AdminStationController::class, 'index']);
-    Route::post('/stations', [AdminStationController::class, 'store']);
+    Route::post('/stations/create', [AdminStationController::class, 'store']);
     Route::put('/stations/{id}', [AdminStationController::class, 'update']);
     Route::delete('/stations/{id}', [AdminStationController::class, 'destroy']);
 
-    // Cabinets
-    Route::get('/cabinets', [AdminCabinetController::class, 'index']);
-    Route::post('/cabinets', [AdminCabinetController::class, 'store']);
-    Route::put('/cabinets/{id}', [AdminCabinetController::class, 'update']);
-    Route::delete('/cabinets/{id}', [AdminCabinetController::class, 'destroy']);
+
 
     // Chargers
     Route::get('/chargers', [AdminChargerController::class, 'index']);
@@ -101,18 +107,21 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     // Bookings
     Route::get('/bookings', [AdminBookingController::class, 'index']);
     Route::post('/bookings', [AdminBookingController::class, 'store']);
+    Route::put('/bookings/{id}/cancel', [AdminBookingController::class, 'cancel']);
+
 
     // Messages
     Route::get('/messages', [AdminMessageController::class, 'index']);
     Route::post('/messages/{id}/reply', [AdminMessageController::class, 'reply']);
+    Route::put('/messages/{id}/resolve', [AdminMessageController::class, 'resolve']);
 
     // Settings
     Route::get('/settings', [AdminSettingsController::class, 'show']);
     Route::put('/settings', [AdminSettingsController::class, 'update']);
-
     // Notifications
-    /*
-    Route::get('/notifications', [AdminNotificationController::class, 'index']);
-    Route::post('/notifications/send', [AdminNotificationController::class, 'store']);
-    */
+    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+        Route::get('/notifications', [AdminNotificationController::class, 'index']);
+        Route::post('/notifications/send', [AdminNotificationController::class, 'store']);
+        Route::post('/notifications/broadcast', [AdminNotificationController::class, 'broadcast']);
+    });
 });
