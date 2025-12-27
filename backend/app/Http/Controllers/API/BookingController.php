@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\CreateBookingRequest;
 use App\Http\Requests\Api\CancelBookingRequest;
+use App\Jobs\SendSessionStartReminder;
 use App\Models\Booking;
 use App\Models\Cabinet;
 use App\Models\Charger;
@@ -101,12 +102,16 @@ class BookingController extends Controller
                 'duration'   => $request->duration_minutes,
                 'status'     => 'pending',
             ]);
+            if ($booking->start_time) {
+                SendSessionStartReminder::dispatch($booking->id)
+                    ->delay($booking->start_time->subMinutes(30));
+            }
 
             // Set charger to busy
             $charger->update(['status' => 'busy']);
 
             try {
-                $this->notificationService->bookingCreated($booking);
+                $this->notificationService->notifyUser($booking->user_id, 'Booking Created', 'Your booking confirmed', 'booking');
             } catch (\Exception $e) {
                 Log::error("Notification failed for booking {$booking->id}: " . $e->getMessage());
             }
@@ -146,7 +151,7 @@ class BookingController extends Controller
         $booking->save();
 
         try {
-            $this->notificationService->toUser($user, 'Booking Cancelled', 'Charger is now free.', 'booking');
+            $this->notificationService->notifyUser($booking->user_id, 'Booking Created', 'Your booking confirmed', 'booking');
         } catch (\Exception $e) {
             Log::error("Notification failed: " . $e->getMessage());
         }

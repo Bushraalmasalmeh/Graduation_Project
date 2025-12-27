@@ -33,4 +33,11 @@ class AdminMessageController extends Controller
 
         return response()->json(['message' => 'Reply_sent_to_user_Ssuccessfully']);
     }
+    public function resolve($id)
+    {
+        $message = ContactMessage::findOrFail($id);
+        $message->update(['status' => 'resolved']);
+
+        return response()->json(['status' => 'success', 'message' => 'Message marked as resolved']);
+    }
 }

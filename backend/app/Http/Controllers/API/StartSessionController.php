@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StartSessionRequest;
+use App\Jobs\SendSessionEndReminder;
+use App\Jobs\SendSessionStartReminder;
 use App\Models\Booking;
 use App\Models\UsageSession;
 use App\Models\User;
@@ -61,6 +63,16 @@ class StartSessionController extends Controller
 
             $booking->update(['status' => 'active']);
             $charger->update(['status' => 'busy']);
+            // Schedule reminders
+            if ($session->session_start) {
+                SendSessionStartReminder::dispatch($session->id)
+                    ->delay($session->session_start->subMinutes(30));
+            }
+
+            if ($booking->end_time) {
+                SendSessionEndReminder::dispatch($session->id)
+                    ->delay($booking->end_time->subMinutes(15));
+            }
 
             try {
                 $this->notificationService->chargingStarted($session);
