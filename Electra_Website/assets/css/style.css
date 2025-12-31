@@ -68,7 +68,7 @@ span {
 /* Input field styles */
 input[type="text"],
 input[type="password"],
-input[type="email"] {
+input[type="email"],input[type="number"] {  
   width: 90%;
   padding: 10px;
   margin-left: 20px;
@@ -387,9 +387,22 @@ input[type="submit"]:hover {
     gap: 1rem; /* Adds space between search and filters */
 }
 
-.search-bar-container {
-    position: relative;
-    flex-grow: 1; /* Allows search bar to take available space */
+#search-input {
+    background-color: #000 !important;   /* إجبار الخلفية لتكون سوداء */
+    color: white !important;             /* إجبار النص ليكون أبيض */
+    border: 1px solid #444;              /* حدود رمادية داكنة */
+}
+
+/* لتغيير لون النص الشفاف (Placeholder) */
+#search-input::placeholder {
+    color: #888;
+}
+
+/* عند الضغط داخل الصندوق */
+#search-input:focus {
+    background-color: #000 !important;
+    border-color: var(--primary-color) !important; /* اللون الأخضر */
+    box-shadow: 0 0 10px rgba(102, 205, 0, 0.3);
 }
 
 .filters-container {
@@ -398,7 +411,7 @@ input[type="submit"]:hover {
 }
 
 /* --- Filter Dropdowns --- */
-.filter-select {
+.role-filter,.status-filter {
     padding: 10px;
     padding-right: 30px;
     background-color: var(--card-bg);
@@ -416,7 +429,7 @@ input[type="submit"]:hover {
     transition: all 0.3s ease;
 }
 
-.filter-select:focus {
+.role-filter,.status-filter:focus {
     border-color: var(--primary-color);
     outline: none;
 }

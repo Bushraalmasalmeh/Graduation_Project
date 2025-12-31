@@ -46,31 +46,19 @@
 </head>
 
 <body>
-    <div class="d-flex" id="wrapper">
-        <aside class="sidebar" id="sidebar">
-            <div>
-                <div class="sidebar-header">
-                    <h3>ELECTRA</h3>
-                </div>
-                <ul class="sidebar-nav">
-                    <li class="sidebar-item"><a href="dashboard.html"><i
-                                class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                    <li class="sidebar-item"><a href="chargers.html"><i
-                                class="fas fa-charging-station"></i><span>Chargers</span></a></li>
-                    <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
-                    </li>
-                    <li class="sidebar-item"><a href="bookings.html"><i
-                                class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
-                    <li class="sidebar-item"><a href="reports.html"><i
-                                class="fas fa-file-alt"></i><span>Reports</span></a></li>
-                </ul>
+   <div class="d-flex" id="wrapper">
+        <aside class="sidebar sidebar-settings" id="sidebar">
+            <div class="sidebar-user-profile">
+                <i class="fas fa-user-circle"></i>
+                <h5 class="user-name" id="user-name">loading...</h5>
+                <p class="user-email text-muted" id="user-email">...</p>
             </div>
-            <div class="sidebar-footer">
-                <ul class="sidebar-nav">
-                    <li class="sidebar-item"><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a>
-                    </li>
-                </ul>
-            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item"><a href="settings.html"><i class="fas fa-user-cog"></i><span>Account</span></a></li>
+                <li class="sidebar-item active"><a href="notifications.html"><i class="fas fa-bell"></i><span>Notifications</span></a></li>
+                <li class="sidebar-item "><a href="settings-security.html"><i class="fas fa-shield-alt"></i><span>Security</span></a></li>
+            </ul>
+            
         </aside>
         <main class="main-content" id="main-content">
             <nav class="navbar">
@@ -80,10 +68,9 @@
                     </button>
                     <span class="navbar-brand">Notifications</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i
-                                    class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
-                                    class="fas fa-user-circle"></i></a></li>
+                        <li class="nav-item">
+                           <a class="nav-link" href="dashboard.html"><i class="fas fa-times"></i> Close Settings</a>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -182,7 +169,12 @@
             </div>
         </main>
     </div>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/api-client.js"></script>
+    
     <script src="assets/js/app.js"></script>
+</body>
 </body>
 
 </html>

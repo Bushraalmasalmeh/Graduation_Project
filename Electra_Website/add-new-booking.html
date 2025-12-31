@@ -5,11 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Booking</title>
-    <link rel="icon" href="assets/images/logo.png" type="image/png"></link>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
@@ -22,22 +21,16 @@
                     <h3>ELECTRA</h3>
                 </div>
                 <ul class="sidebar-nav">
-                    <li class="sidebar-item"><a href="dashboard.html"><i
-                                class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                    <li class="sidebar-item"><a href="chargers.html"><i
-                                class="fas fa-charging-station"></i><span>Chargers</span></a></li>
-                    <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
-                    </li>
-                    <li class="sidebar-item active"><a href="bookings.html"><i
-                                class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
-                    <li class="sidebar-item"><a href="reports.html"><i
-                                class="fas fa-file-alt"></i><span>Reports</span></a></li>
+                    <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="sidebar-item"><a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a></li>
+                    <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a></li>
+                    <li class="sidebar-item active"><a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
+                    <li class="sidebar-item"><a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a></li>
                 </ul>
             </div>
             <div class="sidebar-footer">
                 <ul class="sidebar-nav">
-                    <li class="sidebar-item"><a href="settings-account.html"><i
-                                class="fas fa-cog"></i><span>Settings</span></a></li>
+                    <li class="sidebar-item"><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
                 </ul>
             </div>
         </aside>
@@ -49,10 +42,8 @@
                     </button>
                     <span class="navbar-brand">Add New Booking</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i
-                                    class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
-                                    class="fas fa-user-circle"></i></a></li>
+                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i class="fas fa-bell"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-user-circle"></i></a></li>
                     </ul>
                 </div>
             </nav>
@@ -63,18 +54,27 @@
                             <div class="col-md-6 mb-3">
                                 <label for="booking-user">Select User</label>
                                 <select id="booking-user" name="booking_user" required>
-                                    <option value="" disabled selected>Search for a user...</option>
-                                    <option value="1">Islam Noor</option>
-                                    <option value="2">Fares AlH</option>
+                                    <option value="" disabled selected>Loading users...</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="booking-station">Select Station</label>
+                                <select id="booking-station" class="form-select bg-black text-light border-secondary" required>
+                                    <option value="" disabled selected>Loading stations...</option>
                                 </select>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="booking-station">Select Station</label>
-                                <select id="booking-station" name="booking_station" required>
-                                    <option value="" disabled selected>Choose a station...</option>
-                                    <option value="101">Station 001 - Health Center</option>
-                                    <option value="102">Station 002 - IT College</option>
+                            <div class="col-md-4 mb-3">
+                                <label for="booking-cabinet">Select Cabinet</label>
+                                <select id="booking-cabinet" class="form-select bg-black text-light border-secondary" required disabled>
+                                    <option value="" disabled selected>Select Station first</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="booking-charger">Select Charger</label>
+                                <select id="booking-charger" class="form-select bg-black text-light border-secondary" required disabled>
+                                    <option value="" disabled selected>Select Cabinet first</option>
                                 </select>
                             </div>
 
@@ -86,8 +86,8 @@
                             <div class="col-md-6 mb-3">
                                 <label for="booking-status">Status</label>
                                 <select id="booking-status" name="booking_status" required>
-                                    <option value="confirmed">Confirmed</option>
                                     <option value="pending">Pending</option>
+                                    <option value="active">Active</option>
                                 </select>
                             </div>
 
@@ -111,7 +111,146 @@
             </div>
         </main>
     </div>
-     <script src="assets/js/app.js"></script>
-</body>
 
+   <script src="assets/js/config.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/api-client.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("⚡ Script with UID Logic Loaded!"); // 👈 هذه الجملة تؤكد أن الكود الجديد يعمل
+
+            const form = document.getElementById('add-booking-form');
+            const userSelect = document.getElementById('booking-user');
+            const stationSelect = document.getElementById('booking-station');
+            const cabinetSelect = document.getElementById('booking-cabinet');
+            const chargerSelect = document.getElementById('booking-charger');
+            
+            let localStationsData = [];
+
+            // 1. جلب المستخدمين
+            try {
+                const usersResp = await API.get('/api/admin/users');
+                const users = usersResp.users || usersResp.data || usersResp;
+                userSelect.innerHTML = '<option value="" disabled selected>Select User</option>';
+                if(Array.isArray(users)) {
+                    users.forEach(u => userSelect.innerHTML += `<option value="${u.id}">${u.name} (${u.email})</option>`);
+                }
+            } catch (e) { console.error('Users Error:', e); }
+
+            // 2. جلب المحطات
+            try {
+                const response = await API.get('/api/stations');
+                if (response.stations) localStationsData = response.stations;
+                else if (Array.isArray(response)) localStationsData = response;
+                else if (response.data) localStationsData = response.data;
+
+                console.log("✅ Stations Loaded:", localStationsData);
+
+                stationSelect.innerHTML = '<option value="" disabled selected>Select Station</option>';
+                localStationsData.forEach(st => {
+                    stationSelect.innerHTML += `<option value="${st.id}">${st.station_name || st.name || 'Station ' + st.id}</option>`;
+                });
+            } catch (err) { console.error("Stations Fetch Error:", err); }
+
+            // 3. عند تغيير المحطة
+            stationSelect.addEventListener('change', function() {
+                const selectedId = this.value;
+                const station = localStationsData.find(st => String(st.id) === String(selectedId));
+
+                cabinetSelect.innerHTML = '<option value="" disabled selected>Select Cabinet</option>';
+                chargerSelect.innerHTML = '<option value="" disabled selected>Select Cabinet first</option>';
+                chargerSelect.disabled = true;
+
+                if (station && station.cabinets && station.cabinets.length > 0) {
+                    cabinetSelect.disabled = false;
+                    station.cabinets.forEach(cab => {
+                        cabinetSelect.innerHTML += `<option value="${cab.id}">Cabinet ${cab.cabinet_number}</option>`;
+                    });
+                } else {
+                    cabinetSelect.disabled = true;
+                    cabinetSelect.innerHTML = '<option>No cabinets available</option>';
+                }
+            });
+
+            // 4. عند تغيير الكابينة
+            // 4. عند تغيير الكابينة -> فتح الشواحن (التعديل ليعرض الحالة بدل UID)
+            cabinetSelect.addEventListener('change', function() {
+                const stationId = stationSelect.value;
+                const cabinetId = this.value;
+                
+                const station = localStationsData.find(st => String(st.id) === String(stationId));
+                const cabinet = station ? station.cabinets.find(c => String(c.id) === String(cabinetId)) : null;
+
+                chargerSelect.innerHTML = '<option value="" disabled selected>Select Charger</option>';
+
+                if (cabinet && cabinet.chargers && cabinet.chargers.length > 0) {
+                    chargerSelect.disabled = false;
+                    cabinet.chargers.forEach(ch => {
+                        // ✅ التعديل هنا: عرضنا الحالة (Available/Busy) كما كانت سابقاً
+                        const statusText = ch.status ? `(${ch.status})` : '';
+                        
+                        // القيمة هي ID (للبحث)، والنص هو الرقم + الحالة
+                        chargerSelect.innerHTML += `<option value="${ch.id}">Charger ${ch.charger_number} ${statusText}</option>`;
+                    });
+                } else {
+                    chargerSelect.disabled = true;
+                    chargerSelect.innerHTML = '<option>No chargers available</option>';
+                }
+            });            // 5. الحفظ (الإصلاح النهائي مع UID)
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('input[type="submit"]');
+
+                if (!userSelect.value || !stationSelect.value || !cabinetSelect.value || !chargerSelect.value) {
+                    Swal.fire('Error', 'Please fill all fields', 'warning');
+                    return;
+                }
+
+                // البحث عن UID الشاحن المختار
+                const stId = stationSelect.value;
+                const cabId = cabinetSelect.value;
+                const chId = chargerSelect.value;
+
+                const stationData = localStationsData.find(s => String(s.id) === String(stId));
+                const cabinetData = stationData ? stationData.cabinets.find(c => String(c.id) === String(cabId)) : null;
+                const chargerData = cabinetData ? cabinetData.chargers.find(ch => String(ch.id) === String(chId)) : null;
+
+                if (!chargerData || !chargerData.uid) {
+                    Swal.fire('Error', 'Charger UID missing! Please refresh.', 'error');
+                    return;
+                }
+
+                const data = {
+                    user_id: userSelect.value,
+                    station_id: stationSelect.value,
+                    cabinet_id: cabinetSelect.value,
+                    charger_id: chargerSelect.value,
+                    uid: chargerData.uid,  // ✅ هذا هو السطر الذي ينقصك في الملف الحالي
+                    start_time: `${document.getElementById('booking-date').value} ${document.getElementById('booking-start-time').value}:00`,
+                    end_time: `${document.getElementById('booking-date').value} ${document.getElementById('booking-end-time').value}:00`,
+                    status: document.getElementById('booking-status').value
+                };
+
+                console.log("📤 Sending Data WITH UID:", data);
+
+                try {
+                    btn.value = "Saving...";
+                    btn.disabled = true;
+                    
+                    await API.post('/api/admin/bookings', data);
+                    
+                    Swal.fire('Success', 'Booking Created!', 'success')
+                        .then(() => window.location.href = 'bookings.html');
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error', err.message || 'Failed to save', 'error');
+                } finally {
+                    btn.value = "Save Booking";
+                    btn.disabled = false;
+                }
+            });
+        });
+    </script>
+</body>
 </html>

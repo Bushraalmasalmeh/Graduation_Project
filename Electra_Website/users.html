@@ -68,30 +68,28 @@
             <div class="container-fluid content-inner">
                 <p class="text-muted mb-4" style="text-align: left;">Manage user accounts, charging limits and access
                     permissions.</p>
+<div class="row mb-4 align-items-center">
+    <div class="col-md-5">
+        <input type="search" id="search-input" class="form-control" placeholder="Search name, email...">
+    </div>
+    
+    <div class="col-md-3">
+        <select id="role-filter" class="role-filter w-100">
+            <option value="all">All Roles</option>
+            <option value="admin">Admin</option>
+            <option value="staff">Staff</option>
+            <option value="user">User</option>
+        </select>
+    </div>
 
-                <div class="controls-container mb-4">
-                    <div class="search-bar-container">
-                        <i class="fas fa-search search-icon"></i>
-                        <input type="text" id="search-input" class="search-input"
-                            placeholder="Search users by name or email...">
-                    </div>
-
-                    <div class="filters-container">
-                        <select id="filter-role" class="filter-select me-2">
-                            <option value="all" selected>All Roles</option>
-                            <option value="Student">Student</option>
-                            <option value="Staff">Staff</option>
-                        </select>
-
-                        <select id="filter-status" class="filter-select">
-                            <option value="all" selected>All Status</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-
-                <table class="table custom-table">
+    <div class="col-md-3">
+         <select id="status-filter" class="status-filter w-100">
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+        </select>
+    </div>
+</div>             <table class="table custom-table">
                     <thead>
                         <tr>
                             <th>Name</th>
@@ -122,7 +120,12 @@
             </div>
         </main>
     </div>
+    <<script src="assets/js/config.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/api-client.js"></script>
+    
     <script src="assets/js/app.js"></script>
+</body>
 </body>
 
 </html>
