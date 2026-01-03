@@ -5,10 +5,8 @@ namespace App\Notifications;
 use App\Models\UsageSession;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 
-class ChargingStartedNotification extends Notification implements ShouldQueue
+class ChargingStartedNotification extends Notification
 {
     use Queueable;
 
@@ -21,25 +19,17 @@ class ChargingStartedNotification extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
-    }
-
-    public function toMail($notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject('Charging Session Started')
-            ->line("Your charging session has started.")
-            ->line("Charger ID: {$this->session->charger_id}")
-            ->line("Start Time: {$this->session->session_start}")
-            ->action('View Session', url("/sessions/{$this->session->id}"));
+        return ['database'];
     }
 
     public function toArray($notifiable): array
     {
         return [
-            'session_id'   => $this->session->id,
-            'charger_id'   => $this->session->charger_id,
-            'status'       => $this->session->status,
+            'title' => 'Charging Started',
+            'message' => "Charging started on charger {$this->session->charger_id} at {$this->session->session_start}.",
+            'type' => 'session',
+            'session_id' => $this->session->id,
+            'charger_id' => $this->session->charger_id,
             'session_start' => $this->session->session_start,
         ];
     }

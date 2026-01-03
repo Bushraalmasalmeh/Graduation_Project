@@ -25,12 +25,22 @@ class StartSessionController extends Controller
 
     public function start(StartSessionRequest $request)
     {
-        $data = $request->validated();
-
+        //Validation
+        $data = $request->validate([
+            'uid' => 'required|string',
+            'job_number' => 'required|string|exists:users,job_number',
+            'hours_requested' => 'required|numeric|in:0.5,1,2'
+        ]);
+        //enforce max session hours from .env
+        $maxHours = env('MAX_SESSION_HOURS', 2);
+        if ($data['hours_requested'] > $maxHours) {
+            return response()->json(['message' => 'exceeds_max_hours'], 422);
+        }
         return DB::transaction(function () use ($data) {
+            //lock user by job_number
             $user = User::where('job_number', $data['job_number'])->lockForUpdate()->first();
             if (!$user) return response()->json(['message' => 'invalid_job_number'], 404);
-
+            //check active session
             $active = UsageSession::where('user_id', $user->id)
                 ->where('status', 'active')
                 ->whereNull('session_end')
@@ -52,7 +62,7 @@ class StartSessionController extends Controller
             $now = now();
             if ($now->lt($booking->start_time)) return response()->json(['message' => 'booking_not_started_yet'], 403);
             if ($now->gt($booking->end_time)) return response()->json(['message' => 'booking_expired'], 403);
-
+            //create session
             $session = UsageSession::create([
                 'user_id'       => $user->id,
                 'charger_id'    => $charger->id,
@@ -60,26 +70,20 @@ class StartSessionController extends Controller
                 'session_start' => $now,
                 'status'        => 'active'
             ]);
-
+            // update booking + charger
             $booking->update(['status' => 'active']);
             $charger->update(['status' => 'busy']);
-            // Schedule reminders
-            if ($session->session_start) {
-                SendSessionStartReminder::dispatch($session->id)
-                    ->delay($session->session_start->subMinutes(30));
-            }
-
+            //schedule reminders
+            SendSessionStartReminder::dispatch($session->id)->delay($session->session_start->addMinutes(5));
             if ($booking->end_time) {
-                SendSessionEndReminder::dispatch($session->id)
-                    ->delay($booking->end_time->subMinutes(15));
+                SendSessionEndReminder::dispatch($session->id)->delay($booking->end_time->subMinutes(15));
             }
-
+            //send notification
             try {
                 $this->notificationService->chargingStarted($session);
             } catch (\Exception $e) {
                 Log::error("Notification failed for session {$session->id}: " . $e->getMessage());
             }
-
             return response()->json([
                 'message' => 'session_started',
                 'session' => $session

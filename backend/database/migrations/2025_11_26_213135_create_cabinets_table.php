@@ -19,7 +19,7 @@ return new class extends Migration
                 ->onDelete('cascade');
 
             // مثال: Cabinet 1, Cabinet 2
-            $table->string('cabinet_number');
+            $table->integer('cabinet_number')->nullable(false);
 
             // عدد الشواحن بداخل الكابينة (1 أو 2)
             $table->integer('total_chargers')->default(1);

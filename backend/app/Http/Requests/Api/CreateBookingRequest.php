@@ -15,7 +15,17 @@ class CreateBookingRequest extends FormRequest
     {
         return [
             'station_name'     => 'required|string',
-            'start_time'       => 'nullable|date',
+            'start_time'       => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) {
+                    try {
+                        \Carbon\Carbon::parse($value, 'Asia/Amman');
+                    } catch (\Exception $e) {
+                        $fail('Invalid time format. Please use AM/PM format like "07:30 AM".');
+                    }
+                }
+            ],
             'duration_minutes' => 'required|integer|in:60,90,120',
         ];
     }

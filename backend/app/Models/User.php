@@ -7,6 +7,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Notifications\Notification;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Contracts\Auth\CanResetPassword;
 
 class User extends Authenticatable
 {
@@ -19,10 +20,13 @@ class User extends Authenticatable
         'job_number',
         'department',
         'role_type',
+        'phone',
         'car_model',
         'device_token',
         'status',
         'warnings',
+        'avatar',
+
     ];
     /**
      * The attributes that should be hidden for serialization.

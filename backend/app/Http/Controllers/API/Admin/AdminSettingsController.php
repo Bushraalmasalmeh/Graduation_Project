@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AdminSettingsRequest;
 use App\Models\Setting;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache; // ✅ ADD THIS
+use Illuminate\Support\Facades\Hash;
 
 class AdminSettingsController extends Controller
 {
