@@ -19,7 +19,7 @@ class AdminCreateBookingRequest extends FormRequest
             'cabinet_id'  => 'required|exists:cabinets,id',
             'charger_id'  => 'required|exists:chargers,id',
             'station_name' => 'required|string|exists:charger_stations,station_name',
-
+            'uid' => 'nullable',
             'start_time'  => 'required|date',
             'end_time'    => 'nullable|date|after_or_equal:start_time',
 
