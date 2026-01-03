@@ -23,6 +23,7 @@ return new class extends Migration
             $table->enum('status', ['active', 'offline', 'maintenance'])->default('active');
 
             $table->text('description')->nullable();
+            $table->integer('charger_number')->nullable(false);
 
             $table->timestamps();
         });

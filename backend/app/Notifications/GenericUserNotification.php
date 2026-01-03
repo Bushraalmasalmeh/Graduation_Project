@@ -4,10 +4,8 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 
-class GenericUserNotification extends Notification implements ShouldQueue
+class GenericUserNotification extends Notification
 {
     use Queueable;
 
@@ -24,24 +22,15 @@ class GenericUserNotification extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-
-        return $notifiable->email ? ['mail', 'database'] : ['database'];
-    }
-
-
-    public function toMail($notifiable): MailMessage
-    {
-        return (new MailMessage)
-            ->subject($this->title)
-            ->line($this->message);
+        return ['database'];
     }
 
     public function toArray($notifiable): array
     {
         return [
-            'title'   => $this->title,
+            'title' => $this->title,
             'message' => $this->message,
-            'type'    => $this->type,
+            'type' => $this->type,
         ];
     }
 }

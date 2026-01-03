@@ -53,4 +53,12 @@ class Booking extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function station()
+    {
+        return $this->belongsTo(ChargerStation::class, 'station_id');
+    }
+    public function cabinet()
+    {
+        return $this->belongsTo(Cabinet::class);
+    }
 }

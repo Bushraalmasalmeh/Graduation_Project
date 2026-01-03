@@ -23,6 +23,20 @@ class HardwareController extends Controller
         date_default_timezone_set('Asia/Amman');
         Carbon::setLocale('en');
     }
+    public function verifyJob(Request $request)
+    {
+        $request->validate([
+            'job_number' => 'required|string',
+        ]);
+
+        $user = User::where('job_number', $request->job_number)->first();
+
+        if (!$user) {
+            return response()->json(['status' => 'error', 'message' => 'USER_NOT_FOUND'], 404);
+        }
+
+        return response()->json(['status' => 'success', 'message' => 'JOB_VERIFIED', 'user_name' => $user->name], 200);
+    }
 
     // ========== START SESSION ==========
     public function startSession(Request $request)

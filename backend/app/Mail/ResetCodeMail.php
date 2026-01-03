@@ -20,8 +20,10 @@ class ResetCodeMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Password Reset Code')
+        return $this->subject('Electra - Password Reset Code')
             ->view('emails.reset_code')
-            ->with(['code' => $this->code]);
+            ->with([
+                'code' => $this->code,
+            ]);
     }
 }
