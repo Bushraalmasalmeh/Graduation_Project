@@ -45,9 +45,22 @@ class AdminBookingController extends Controller
     }
     public function cancel($id)
     {
-        $booking = Booking::findOrFail($id);
-        $booking->update(['status' => 'cancelled']);
+        $booking = Booking::find($id);
 
-        return response()->json(['status' => 'success', 'message' => 'Booking cancelled']);
+        if (!$booking) {
+            return response()->json(['message' => 'Booking not found'], 404);
+        }
+
+        // Optional: check if already cancelled
+        if ($booking->status === 'cancelled') {
+            return response()->json(['message' => 'Booking already cancelled'], 400);
+        }
+
+        $booking->status = 'cancelled';
+        $booking->cancelled_by = 'admin';
+        $booking->cancelled_at = now();
+        $booking->save();
+
+        return response()->json(['message' => 'Booking cancelled successfully']);
     }
 }
