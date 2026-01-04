@@ -72,6 +72,7 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
     Route::post('/bookings/create', [BookingController::class, 'store']);
     Route::post('/bookings/cancel', [BookingController::class, 'cancel']);
     Route::post('/logout-all', [UserController::class, 'logoutAll']);
+    Route::get('/stations/schedule', [BookingController::class, 'getSchedule']);
     // Sessions
     Route::post('/session/stop', [StopSessionController::class, 'stop']);
     Route::get('/session/history', [SessionHistoryController::class, 'index']);
@@ -97,6 +98,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/change-password', [ProfileController::class, 'changePassword']);
     Route::get('/dashboard', [AdminDashboardController::class, 'overview']);
     Route::get('/reports/summary', [AdminDashboardController::class, 'reportSummary']);
+    Route::get('/stations/{id}/schedule', [AdminStationController::class, 'getStationSchedule']);
 
     // Users
     Route::get('/users', [AdminUserController::class, 'index']);
@@ -109,6 +111,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::post('/stations/create', [AdminStationController::class, 'store']);
     Route::put('/stations/{id}', [AdminStationController::class, 'update']);
     Route::delete('/stations/{id}', [AdminStationController::class, 'destroy']);
+    Route::delete('/bookings/{id}', [AdminStationController::class, 'deleteBooking']);
 
     // Chargers
     Route::get('/chargers', [AdminChargerController::class, 'index']);

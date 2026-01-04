@@ -111,8 +111,8 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'noreply@electra.com'),
-        'name' => env('MAIL_FROM_NAME', 'Electra'),
+        'address' => env('MAIL_FROM_ADDRESS', 'Electra.sysa@gmail.com'),
+        'name' => env('MAIL_FROM_NAME', 'Electra System'),
     ],
 
 ];

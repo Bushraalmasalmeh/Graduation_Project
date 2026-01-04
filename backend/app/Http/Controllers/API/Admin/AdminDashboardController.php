@@ -7,6 +7,8 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Charger;
 use App\Models\ChargerStation;
+use App\Models\UsageSession;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 
 class AdminDashboardController extends Controller
@@ -22,25 +24,46 @@ class AdminDashboardController extends Controller
     }
     public function reportSummary()
     {
-        $monthlyBookings = Booking::selectRaw('MONTH(created_at) as month, COUNT(*) as total')
-            ->groupBy('month')
-            ->get();
+        $totalUsage = UsageSession::sum('duration');
+        $stationCount = ChargerStation::count();
+        $totalCapacity = $stationCount * 13 * 30;
+        $overallUsage = $totalCapacity > 0 ? round(($totalUsage / $totalCapacity) * 100, 2) : 0;
+
+        $topStation = ChargerStation::withCount('bookings')
+            ->orderByDesc('bookings_count')
+            ->first();
 
         $topUsers = User::withCount('bookings')
             ->orderByDesc('bookings_count')
             ->take(5)
             ->get();
 
-        $topStation = ChargerStation::withCount('bookings')
-            ->orderByDesc('bookings_count')
-            ->first();
+        $monthlyBookings = Booking::selectRaw('MONTH(created_at) as month, COUNT(*) as total')
+            ->groupBy('month')
+            ->get();
+
+        $stationUsage = ChargerStation::with(['usageSessions' => function ($q) {
+            $q->selectRaw('station_id, SUM(duration) as total_usage')->groupBy('station_id');
+        }])->get()->map(function ($station) {
+            $usage = $station->usageSessions->sum('duration');
+            return [
+                'station_name' => $station->station_name,
+                'usage_hours' => $usage,
+            ];
+        });
+
+
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'monthlyBookings' => $monthlyBookings,
-                'topUsers' => $topUsers,
+                'totalUsage' => $totalUsage,
+                'totalCapacity' => $totalCapacity,
+                'overallUsage' => $overallUsage,
                 'topStation' => $topStation,
+                'topUsers' => $topUsers,
+                'monthlyBookings' => $monthlyBookings,
+                'stationUsage' => $stationUsage,
             ]
         ]);
     }
