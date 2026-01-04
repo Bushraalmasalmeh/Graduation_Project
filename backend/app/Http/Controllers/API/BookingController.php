@@ -10,7 +10,6 @@ use App\Models\Booking;
 use App\Models\Cabinet;
 use App\Models\Charger;
 use App\Models\ChargerStation;
-use App\Models\Setting;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -45,7 +44,6 @@ class BookingController extends Controller
         return DB::transaction(function () use ($request, $startTime, $now) {
             $user = $request->user();
 
-            // 1. Booking must be for today
             if (!$startTime->isSameDay($now)) {
                 return response()->json([
                     'message' => 'Booking must be for today only.',
@@ -53,7 +51,6 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            // 2. Booking must be within the next 30 minutes
             $diffInMinutes = $startTime->diffInMinutes($now, false);
             if ($diffInMinutes < 0 || $diffInMinutes > 30) {
                 return response()->json([
@@ -62,7 +59,6 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            // 3. Working hours check (7 AM - 8 PM)
             if ($startTime->hour < 7 || $startTime->hour >= 20) {
                 return response()->json([
                     "message" => "Booking must be between 07:00 AM and 08:00 PM.",
@@ -70,7 +66,6 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            // 4. Check if user already has a booking today
             $alreadyBooked = Booking::where('user_id', $user->id)
                 ->whereDate('start_time', $now->toDateString())
                 ->whereIn('status', ['pending', 'active', 'confirmed'])
@@ -84,7 +79,6 @@ class BookingController extends Controller
                 ], 422);
             }
 
-            // 5. Station lookup
             $station = ChargerStation::whereRaw('LOWER(station_name) = ?', [strtolower(trim($request->station_name))])
                 ->where('status', 'active')
                 ->first();
@@ -93,7 +87,6 @@ class BookingController extends Controller
                 return response()->json(['message' => 'Station not found.'], 404);
             }
 
-            // 6. Cabinet and charger availability
             $cabinet = Cabinet::where('station_id', $station->id)
                 ->where('status', 'available')
                 ->lockForUpdate()
@@ -112,7 +105,6 @@ class BookingController extends Controller
                 return response()->json(['message' => 'No available chargers.'], 422);
             }
 
-            // 7. Create booking
             $booking = Booking::create([
                 'user_id'    => $user->id,
                 'station_id' => $station->id,
@@ -125,16 +117,18 @@ class BookingController extends Controller
                 'status'     => 'pending',
             ]);
 
-            // 8. Schedule reminder
+            app(\App\Services\ScheduleService::class)->rebuildScheduleFrom(
+                $booking->station_id,
+                Carbon::parse($booking->end_time)
+            );
+
             if ($booking->start_time) {
                 SendSessionStartReminder::dispatch($booking->id)
                     ->delay($booking->start_time->subMinutes(30));
             }
 
-            // 9. Mark charger as busy
             $charger->update(['status' => 'busy']);
 
-            // 10. Notify user
             try {
                 $this->notificationService->notifyUser(
                     $booking->user_id,
@@ -204,5 +198,49 @@ class BookingController extends Controller
             $booking->update(['status' => 'completed']);
             return response()->json(['message' => 'Charging stopped successfully.'], 200);
         });
+    }
+
+    public function getSchedule(Request $request)
+    {
+        $request->validate([
+            'uid' => 'required|string',
+            'date' => 'nullable|date'
+        ]);
+
+        $uid = $request->uid;
+        $date = $request->date ?? now()->toDateString();
+
+        $startHour = 8;
+        $endHour = 20;
+
+        $slots = collect(range($startHour, $endHour))->map(function ($hour) use ($date) {
+            $start = Carbon::parse("$date $hour:00:00");
+            $end = Carbon::parse("$date $hour:59:59");
+            return [
+                'start' => $start->toIso8601String(),
+                'end' => $end->toIso8601String(),
+                'status' => 'available'
+            ];
+        });
+
+        $booked = Booking::where('UID', $uid)
+            ->whereDate('start_time', $date)
+            ->get();
+
+        foreach ($slots as &$slot) {
+            foreach ($booked as $booking) {
+                $bookingStart = Carbon::parse($booking->start_time);
+                $bookingEnd = Carbon::parse($booking->end_time);
+                $slotStart = Carbon::parse($slot['start']);
+                $slotEnd = Carbon::parse($slot['end']);
+
+                if ($slotStart->between($bookingStart, $bookingEnd) || $slotEnd->between($bookingStart, $bookingEnd)) {
+                    $slot['status'] = 'booked';
+                    break;
+                }
+            }
+        }
+
+        return response()->json(['schedule' => $slots]);
     }
 }

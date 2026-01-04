@@ -3,6 +3,8 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Console\Scheduling\Schedule;
+use App\Services\ScheduleService;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -27,7 +29,13 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })
-    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+    ->withSchedule(function (Schedule $schedule) {
+        // مهمة إغلاق الجلسات المنتهية
         $schedule->command('sessions:close-timeouts')->everyMinute();
+
+        // توليد جدول الجلسات يوميًا الساعة 7 صباحًا
+        $schedule->call(function () {
+            app(ScheduleService::class)->generateDailySchedule();
+        })->dailyAt('07:00');
     })
     ->create();

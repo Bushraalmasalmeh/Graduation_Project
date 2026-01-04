@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\AdminStationRequest;
 use App\Models\ChargerStation;
+use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class AdminStationController extends Controller
 {
@@ -80,10 +82,53 @@ class AdminStationController extends Controller
         ]);
     }
 
+    // ✅ حذف محطة بدون شروط
     public function destroy($id)
     {
-        ChargerStation::findOrFail($id)->delete();
+        $station = ChargerStation::findOrFail($id);
+        $station->delete();
 
         return response()->json(['message' => 'Station deleted']);
+    }
+
+    // ✅ جدول زمني للجلسات المرتبطة بمحطة
+    public function getStationSchedule($id)
+    {
+        $station = ChargerStation::find($id);
+        if (!$station) {
+            return response()->json(['message' => 'STATION_NOT_FOUND'], 404);
+        }
+
+        $bookings = Booking::with('user')
+            ->where('UID', $station->UID)
+            ->orderBy('start_time')
+            ->get();
+
+        $data = $bookings->map(function ($booking) {
+            return [
+                'id' => $booking->id,
+                'title' => $booking->user->name ?? 'Unassigned',
+                'start' => Carbon::parse($booking->start_time)->toIso8601String(),
+                'end' => Carbon::parse($booking->end_time)->toIso8601String(),
+                'status' => $booking->status,
+                'color' => match ($booking->status) {
+                    'pending' => '#f39c12',
+                    'active' => '#3498db',
+                    'completed' => '#2ecc71',
+                    default => '#bdc3c7'
+                }
+            ];
+        });
+
+        return response()->json($data);
+    }
+
+    // ✅ حذف أي حجز لأي مستخدم بدون شروط
+    public function deleteBooking($id)
+    {
+        $booking = Booking::findOrFail($id);
+        $booking->delete();
+
+        return response()->json(['message' => 'Booking deleted by admin']);
     }
 }

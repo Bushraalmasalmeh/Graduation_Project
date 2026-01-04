@@ -45,12 +45,12 @@ class ChargerStation extends Model
     public function usageSessions()
     {
         return $this->hasManyThrough(
-            UsageSession::class,
-            Booking::class,
-            'station_id',   // bookings.station_id
-            'booking_id',   // usage_sessions.booking_id
-            'id',           // charger_stations.id
-            'id'            // bookings.id
+            \App\Models\UsageSession::class,
+            \App\Models\Charger::class,
+            'station_id', // foreign key on chargers
+            'charger_id', // foreign key on usage_sessions
+            'id',         // local key on stations
+            'id'          // local key on chargers
         );
     }
 }
