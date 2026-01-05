@@ -26,6 +26,7 @@ class AdminStationController extends Controller
         DB::beginTransaction();
 
         try {
+            // إنشاء المحطة
             $station = ChargerStation::create([
                 'station_code'   => $data['station_code'],
                 'station_name'   => $data['station_name'],
@@ -37,6 +38,7 @@ class AdminStationController extends Controller
                 'charger_number' => $data['charger_number'] ?? ($data['total_cabinets'] * 2),
             ]);
 
+            // إنشاء الكابينات والشواحن
             for ($i = 1; $i <= $data['total_cabinets']; $i++) {
                 $cabinet = $station->cabinets()->create([
                     'name'           => 'Cabinet ' . $i,
@@ -46,11 +48,21 @@ class AdminStationController extends Controller
                 ]);
 
                 for ($j = 1; $j <= 2; $j++) {
+                    $chargerCode = $data['station_code'] . $i . $j;
+                    $uid = 'UID-' . $chargerCode;
+
+                    // ✅ تحقق من التكرار
+                    $exists = \App\Models\Charger::where('uid', $uid)->exists();
+                    if ($exists) {
+                        throw new \Exception("Charger UID already exists: " . $uid);
+                    }
+
                     $cabinet->chargers()->create([
                         'name'           => 'Charger ' . $j,
                         'status'         => 'available',
                         'charger_number' => $j,
-                        'uid'            => Str::uuid(),
+                        'code'           => $chargerCode,
+                        'uid'            => $uid,
                     ]);
                 }
             }
@@ -100,7 +112,7 @@ class AdminStationController extends Controller
         }
 
         $bookings = Booking::with('user')
-            ->where('UID', $station->UID)
+            ->where('charger_station_id', $station->id)
             ->orderBy('start_time')
             ->get();
 
