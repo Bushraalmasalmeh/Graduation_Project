@@ -26,6 +26,7 @@ class AdminStationController extends Controller
         DB::beginTransaction();
 
         try {
+            // إنشاء المحطة
             $station = ChargerStation::create([
                 'station_code'   => $data['station_code'],
                 'station_name'   => $data['station_name'],
@@ -37,6 +38,7 @@ class AdminStationController extends Controller
                 'charger_number' => $data['charger_number'] ?? ($data['total_cabinets'] * 2),
             ]);
 
+            // إنشاء الكابينات والشواحن
             for ($i = 1; $i <= $data['total_cabinets']; $i++) {
                 $cabinet = $station->cabinets()->create([
                     'name'           => 'Cabinet ' . $i,
@@ -46,11 +48,21 @@ class AdminStationController extends Controller
                 ]);
 
                 for ($j = 1; $j <= 2; $j++) {
+                    $chargerCode = $data['station_code'] . $i . $j;
+                    $uid = 'UID-' . $chargerCode;
+
+                    // ✅ تحقق من التكرار
+                    $exists = \App\Models\Charger::where('uid', $uid)->exists();
+                    if ($exists) {
+                        throw new \Exception("Charger UID already exists: " . $uid);
+                    }
+
                     $cabinet->chargers()->create([
                         'name'           => 'Charger ' . $j,
                         'status'         => 'available',
                         'charger_number' => $j,
-                        'uid'            => Str::uuid(),
+                        'code'           => $chargerCode,
+                        'uid'            => $uid,
                     ]);
                 }
             }
@@ -100,7 +112,7 @@ class AdminStationController extends Controller
         }
 
         $bookings = Booking::with('user')
-            ->where('UID', $station->UID)
+            ->where('charger_station_id', $station->id)
             ->orderBy('start_time')
             ->get();
 
@@ -130,5 +142,83 @@ class AdminStationController extends Controller
         $booking->delete();
 
         return response()->json(['message' => 'Booking deleted by admin']);
+    }
+    public function getAvailability(AdminStationRequest $request, $stationId)
+    {
+        $request->validate([
+            'date' => 'required|date_format:Y-m-d',
+            'duration' => 'required|integer|in:60,90,120',
+        ]);
+
+        $station = \App\Models\ChargerStation::with('cabinets.chargers')->findOrFail($stationId);
+
+        $startOfDay = Carbon::parse($request->date . ' 08:00');
+        $endOfDay = Carbon::parse($request->date . ' 20:00');
+
+        $chargerIds = $station->cabinets->flatMap->chargers->pluck('id');
+        $bookings = \App\Models\Booking::whereIn('charger_id', $chargerIds)
+            ->whereDate('start_time', $request->date)
+            ->whereIn('status', ['pending', 'active'])
+            ->get()
+            ->groupBy('charger_id');
+
+        $bufferMinutes = 5;
+        $slotStep = 15;
+        $duration = $request->duration;
+        $response = [];
+
+        foreach ($station->cabinets as $cabinet) {
+            foreach ($cabinet->chargers as $charger) {
+                $taken = $bookings->get($charger->id, collect())->map(function ($b) use ($bufferMinutes) {
+                    return [
+                        'start' => Carbon::parse($b->start_time)->subMinutes($bufferMinutes),
+                        'end' => Carbon::parse($b->end_time)->addMinutes($bufferMinutes),
+                    ];
+                });
+
+                $slots = [];
+                $cursor = $startOfDay->copy();
+                while ($cursor->copy()->addMinutes($duration) <= $endOfDay) {
+                    $slotStart = $cursor->copy();
+                    $slotEnd = $cursor->copy()->addMinutes($duration);
+                    $overlap = false;
+                    foreach ($taken as $t) {
+                        if ($slotStart < $t['end'] && $slotEnd > $t['start']) {
+                            $overlap = true;
+                            break;
+                        }
+                    }
+                    if (!$overlap) {
+                        $slots[] = [
+                            'start' => $slotStart->toIso8601String(),
+                            'end' => $slotEnd->toIso8601String(),
+                            'duration_minutes' => $duration,
+                        ];
+                    }
+                    $cursor->addMinutes($slotStep);
+                }
+
+                $response[] = [
+                    'charger_id' => $charger->id,
+                    'uid' => $charger->uid,
+                    'code' => $charger->code ?? null,
+                    'cabinet_id' => $cabinet->id,
+                    'cabinet_num' => $cabinet->cabinet_number,
+                    'status' => $charger->status,
+                    'available_slots' => $slots,
+                ];
+            }
+        }
+
+        return response()->json([
+            'station' => [
+                'id' => $station->id,
+                'name' => $station->station_name,
+                'code' => $station->station_code,
+            ],
+            'date' => $request->date,
+            'duration' => $duration,
+            'chargers' => $response
+        ]);
     }
 }

@@ -42,28 +42,25 @@ class AdminDashboardController extends Controller
             ->groupBy('month')
             ->get();
 
-        $stationUsage = ChargerStation::with(['usageSessions' => function ($q) {
-            $q->selectRaw('station_id, SUM(duration) as total_usage')->groupBy('station_id');
-        }])->get()->map(function ($station) {
-            $usage = $station->usageSessions->sum('duration');
-            return [
-                'station_name' => $station->station_name,
-                'usage_hours' => $usage,
-            ];
-        });
-
-
+        $stationUsage = ChargerStation::withSum('usageSessions as total_hours', 'duration')
+            ->get()
+            ->map(function ($station) {
+                return [
+                    'station_name' => $station->station_name,
+                    'usage_hours'  => $station->total_hours ?? 0,
+                ];
+            });
 
         return response()->json([
             'status' => 'success',
             'data' => [
-                'totalUsage' => $totalUsage,
-                'totalCapacity' => $totalCapacity,
-                'overallUsage' => $overallUsage,
-                'topStation' => $topStation,
-                'topUsers' => $topUsers,
+                'totalUsage'      => $totalUsage,
+                'totalCapacity'   => $totalCapacity,
+                'overallUsage'    => $overallUsage,
+                'topStation'      => $topStation,
+                'topUsers'        => $topUsers,
                 'monthlyBookings' => $monthlyBookings,
-                'stationUsage' => $stationUsage,
+                'stationUsage'    => $stationUsage,
             ]
         ]);
     }
