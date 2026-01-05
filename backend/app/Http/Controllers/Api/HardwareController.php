@@ -27,16 +27,23 @@ class HardwareController extends Controller
     {
         $request->validate([
             'job_number' => 'required|string',
+            'uid' => 'required|string',
         ]);
 
-        $user = User::where('job_number', $request->job_number)->first();
+        $booking = \App\Models\Booking::with('user')
+            ->where('UID', $request->uid)
+            ->where('status', 'pending')
+            ->where('start_time', '<=', now())
+            ->where('end_time', '>=', now())
+            ->first();
 
-        if (!$user) {
-            return response()->json(['status' => 'error', 'message' => 'USER_NOT_FOUND'], 404);
+        if (!$booking || $booking->user->job_number !== $request->job_number) {
+            return response()->json(['status' => 'error', 'code' => 'NO_BOOKING']);
         }
 
-        return response()->json(['status' => 'success', 'message' => 'JOB_VERIFIED', 'user_name' => $user->name], 200);
+        return response()->json(['status' => 'success', 'user_name' => $booking->user->name]);
     }
+
 
     // ========== START SESSION ==========
     public function startSession(Request $request)

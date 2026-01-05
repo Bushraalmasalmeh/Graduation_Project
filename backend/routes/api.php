@@ -83,6 +83,8 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/test', [NotificationController::class, 'test']);
 
+    Route::get('/stations/{stationId}/availability', [StationController::class, 'getAvailability']);
+    Route::post('/bookings/create', [BookingController::class, 'create'])->middleware('auth:sanctum');
 
 
     // Contact

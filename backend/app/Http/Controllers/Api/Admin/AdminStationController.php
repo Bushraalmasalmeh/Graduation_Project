@@ -143,4 +143,82 @@ class AdminStationController extends Controller
 
         return response()->json(['message' => 'Booking deleted by admin']);
     }
+    public function getAvailability(AdminStationRequest $request, $stationId)
+    {
+        $request->validate([
+            'date' => 'required|date_format:Y-m-d',
+            'duration' => 'required|integer|in:60,90,120',
+        ]);
+
+        $station = \App\Models\ChargerStation::with('cabinets.chargers')->findOrFail($stationId);
+
+        $startOfDay = Carbon::parse($request->date . ' 08:00');
+        $endOfDay = Carbon::parse($request->date . ' 20:00');
+
+        $chargerIds = $station->cabinets->flatMap->chargers->pluck('id');
+        $bookings = \App\Models\Booking::whereIn('charger_id', $chargerIds)
+            ->whereDate('start_time', $request->date)
+            ->whereIn('status', ['pending', 'active'])
+            ->get()
+            ->groupBy('charger_id');
+
+        $bufferMinutes = 5;
+        $slotStep = 15;
+        $duration = $request->duration;
+        $response = [];
+
+        foreach ($station->cabinets as $cabinet) {
+            foreach ($cabinet->chargers as $charger) {
+                $taken = $bookings->get($charger->id, collect())->map(function ($b) use ($bufferMinutes) {
+                    return [
+                        'start' => Carbon::parse($b->start_time)->subMinutes($bufferMinutes),
+                        'end' => Carbon::parse($b->end_time)->addMinutes($bufferMinutes),
+                    ];
+                });
+
+                $slots = [];
+                $cursor = $startOfDay->copy();
+                while ($cursor->copy()->addMinutes($duration) <= $endOfDay) {
+                    $slotStart = $cursor->copy();
+                    $slotEnd = $cursor->copy()->addMinutes($duration);
+                    $overlap = false;
+                    foreach ($taken as $t) {
+                        if ($slotStart < $t['end'] && $slotEnd > $t['start']) {
+                            $overlap = true;
+                            break;
+                        }
+                    }
+                    if (!$overlap) {
+                        $slots[] = [
+                            'start' => $slotStart->toIso8601String(),
+                            'end' => $slotEnd->toIso8601String(),
+                            'duration_minutes' => $duration,
+                        ];
+                    }
+                    $cursor->addMinutes($slotStep);
+                }
+
+                $response[] = [
+                    'charger_id' => $charger->id,
+                    'uid' => $charger->uid,
+                    'code' => $charger->code ?? null,
+                    'cabinet_id' => $cabinet->id,
+                    'cabinet_num' => $cabinet->cabinet_number,
+                    'status' => $charger->status,
+                    'available_slots' => $slots,
+                ];
+            }
+        }
+
+        return response()->json([
+            'station' => [
+                'id' => $station->id,
+                'name' => $station->station_name,
+                'code' => $station->station_code,
+            ],
+            'date' => $request->date,
+            'duration' => $duration,
+            'chargers' => $response
+        ]);
+    }
 }
