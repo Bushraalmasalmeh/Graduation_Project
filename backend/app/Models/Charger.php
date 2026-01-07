@@ -56,4 +56,8 @@ class Charger extends Model
     {
         return $this->hasMany(Booking::class);
     }
+    public function usageSessions()
+    {
+        return $this->hasMany(\App\Models\UsageSession::class, 'charger_id');
+    }
 }

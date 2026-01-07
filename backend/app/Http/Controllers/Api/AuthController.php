@@ -25,8 +25,8 @@ class AuthController extends Controller
             'job_number'   => 'required|unique:users',
             'department'   => 'required',
             'role_type'    => 'required|in:faculty,staff,both',
-            'car_model'    => 'nullable|string',
-            'plate_number' => 'nullable|string|unique:cars',
+            'car_model' => 'required|string|max:50',
+            'plate_number' => 'required|string|max:20|unique:cars',
         ]);
 
         $user = User::create([

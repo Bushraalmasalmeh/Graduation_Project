@@ -26,7 +26,6 @@ class AdminStationController extends Controller
         DB::beginTransaction();
 
         try {
-            // إنشاء المحطة
             $station = ChargerStation::create([
                 'station_code'   => $data['station_code'],
                 'station_name'   => $data['station_name'],
@@ -38,7 +37,6 @@ class AdminStationController extends Controller
                 'charger_number' => $data['charger_number'] ?? ($data['total_cabinets'] * 2),
             ]);
 
-            // إنشاء الكابينات والشواحن
             for ($i = 1; $i <= $data['total_cabinets']; $i++) {
                 $cabinet = $station->cabinets()->create([
                     'name'           => 'Cabinet ' . $i,
@@ -51,7 +49,6 @@ class AdminStationController extends Controller
                     $chargerCode = $data['station_code'] . $i . $j;
                     $uid = 'UID-' . $chargerCode;
 
-                    // ✅ تحقق من التكرار
                     $exists = \App\Models\Charger::where('uid', $uid)->exists();
                     if ($exists) {
                         throw new \Exception("Charger UID already exists: " . $uid);
@@ -94,7 +91,6 @@ class AdminStationController extends Controller
         ]);
     }
 
-    // ✅ حذف محطة بدون شروط
     public function destroy($id)
     {
         $station = ChargerStation::findOrFail($id);
@@ -103,7 +99,6 @@ class AdminStationController extends Controller
         return response()->json(['message' => 'Station deleted']);
     }
 
-    // ✅ جدول زمني للجلسات المرتبطة بمحطة
     public function getStationSchedule($id)
     {
         $station = ChargerStation::find($id);
@@ -112,7 +107,7 @@ class AdminStationController extends Controller
         }
 
         $bookings = Booking::with('user')
-            ->where('charger_station_id', $station->id)
+            ->where('station_id', $station->id)
             ->orderBy('start_time')
             ->get();
 
@@ -135,7 +130,6 @@ class AdminStationController extends Controller
         return response()->json($data);
     }
 
-    // ✅ حذف أي حجز لأي مستخدم بدون شروط
     public function deleteBooking($id)
     {
         $booking = Booking::findOrFail($id);
@@ -219,6 +213,23 @@ class AdminStationController extends Controller
             'date' => $request->date,
             'duration' => $duration,
             'chargers' => $response
+        ]);
+    }
+    public function reportSummary($stationId)
+    {
+        $station = ChargerStation::with(['cabinets.chargers.bookings'])->findOrFail($stationId);
+
+        $totalMinutes = $station->cabinets
+            ->flatMap->chargers
+            ->flatMap->bookings
+            ->sum(function ($booking) {
+                return $booking->duration ?? 0;
+            });
+
+        return response()->json([
+            'station_id' => $station->id,
+            'station_name' => $station->station_name,
+            'total_usage_minutes' => $totalMinutes,
         ]);
     }
 }

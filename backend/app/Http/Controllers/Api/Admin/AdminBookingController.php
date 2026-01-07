@@ -55,6 +55,21 @@ class AdminBookingController extends Controller
             ], 422);
         }
 
+        $bookingDate = $startTime->toDateString();
+
+        $existingSameDay = Booking::where('user_id', $data['user_id'])
+            ->whereDate('start_time', $bookingDate)
+            ->whereIn('status', ['pending', 'active', 'confirmed'])
+            ->exists();
+
+        if ($existingSameDay) {
+            return response()->json([
+                'message' => 'User already has a booking on this day.',
+                'code'    => 'USER_ALREADY_BOOKED_TODAY'
+            ], 422);
+        }
+
+
         // إنشاء الحجز
         $booking = DB::transaction(function () use ($data, $startTime, $endTime) {
             return Booking::create([

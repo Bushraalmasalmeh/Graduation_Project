@@ -20,8 +20,8 @@ class AdminMessageController extends Controller
                 return [
                     'id'         => $msg->id,
                     'user'       => [
-                        'name'  => $msg->user->name,
-                        'email' => $msg->user->email,
+                        'name'  => optional($msg->user)->name ?? 'Guest/Deleted',
+                        'email' => optional($msg->user)->email ?? 'N/A',
                     ],
                     'subject'    => $msg->subject ?? 'No Subject',
                     'message'    => $msg->message,
@@ -34,6 +34,7 @@ class AdminMessageController extends Controller
     }
 
 
+
     public function reply(Request $request, $id)
     {
         $request->validate([
@@ -42,7 +43,7 @@ class AdminMessageController extends Controller
 
         $message = ContactMessage::findOrFail($id);
         $message->admin_reply = $request->reply;
-        $message->status = 'replied'; // ✅ استخدم نفس القيم الموجودة في الـ migration
+        $message->status = 'replied';
         $message->save();
 
         return response()->json([
