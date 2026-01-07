@@ -20,7 +20,7 @@ class UserController extends Controller
      */
     public function profile(Request $request)
     {
-        $user = $request->user()->load('car');
+        $user = $request->user()->load('car', 'primaryPhone');
         $todayStart = Carbon::today();
         $todayEnd = Carbon::now();
         $usedMinutesToday = Booking::where(
@@ -53,6 +53,7 @@ class UserController extends Controller
                 'remaining_limit_minutes' => $remainingLimit,
                 'created_at' => $user->created_at->toIso8601String(),
                 'updated_at' => $user->updated_at->toIso8601String(),
+                'phone' => optional($user->primaryPhone)->phone_number,
                 'car' => [
                     'car_model' => optional($user->car)->car_model,
                     'plate_number' => optional($user->car)->plate_number,
@@ -71,16 +72,25 @@ class UserController extends Controller
     public function update(UpdateProfileRequest $request)
     {
         $user = $request->user();
+
         $user->update($request->validated());
+
+        if ($request->filled('phone')) {
+            $user->primaryPhone()->updateOrCreate(
+                ['type' => 'primary'],
+                ['phone_number' => $request->phone]
+            );
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Profile updated successfully',
             'data' => [
-                'user' => $user
+                'user' => $user->load('primaryPhone')
             ]
         ]);
     }
+
 
     /**
      * Update user avatar image

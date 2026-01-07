@@ -56,10 +56,6 @@ class User extends Authenticatable
         return $this->hasOne(Car::class);
     }
 
-    public function phones()
-    {
-        return $this->hasMany(UserPhone::class);
-    }
 
     public function bookings()
     {
@@ -98,5 +94,9 @@ class User extends Authenticatable
     public function adminNotifications()
     {
         return $this->hasMany(Notification::class, 'admin_id');
+    }
+    public function primaryPhone()
+    {
+        return $this->hasOne(UserPhone::class)->where('type', 'primary');
     }
 }
