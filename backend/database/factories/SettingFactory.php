@@ -15,7 +15,7 @@ class SettingFactory extends Factory
             'maintenance_mode' => false,
             'max_warnings' => 3,
             'grace_period_minutes' => 10,
-            'notes' => fake()->sentence(),
+            'notes' => 'Default system notes',
         ];
     }
 }

@@ -81,6 +81,7 @@ class CoreDataSeeder extends Seeder
                 'location' => $s['name'],
                 'department' => $s['department'],
                 'total_cabinets' => $s['cabinets'],
+'charger_number'=>$s['cabinets']*2,
                 'status' => 'active',
                 'description' => $s['description'],
             ]);
