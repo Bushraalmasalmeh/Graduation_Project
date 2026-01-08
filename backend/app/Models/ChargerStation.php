@@ -10,15 +10,15 @@ class ChargerStation extends Model
     use HasFactory;
 
     protected $fillable = [
-    'station_code',
-    'station_name',
-    'location',
-    'department',    
-    'total_cabinets',
-    'status',
-    'description',
-    'charger_number' 
-];
+        'station_code',
+        'station_name',
+        'location',
+        'department',
+        'total_cabinets',
+        'status',
+        'description',
+        'charger_number'
+    ];
 
 
     public function cabinets()
