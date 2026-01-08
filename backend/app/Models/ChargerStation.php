@@ -16,7 +16,8 @@ class ChargerStation extends Model
         'department',
         'total_cabinets',
         'status',
-        'description'
+        'description',
+        'charger_number'
     ];
 
 

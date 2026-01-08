@@ -101,8 +101,8 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/dashboard', [AdminDashboardController::class, 'overview']);
     Route::get('/reports/summary', [AdminDashboardController::class, 'reportSummary']);
     Route::get('/stations/{id}/schedule', [AdminStationController::class, 'getStationSchedule']);
-    Route::get('/admin/stations/{stationId}/availability', [AdminStationController::class, 'getAvailability']);
-
+    Route::get('/stations/{stationId}/availability', [AdminStationController::class, 'getAvailability']);
+    Route::get('/stations/{stationId}', [AdminStationController::class, 'show']);
     // Users
     Route::get('/users', [AdminUserController::class, 'index']);
     Route::post('/users/create', [AdminUserController::class, 'store']);

@@ -215,6 +215,11 @@ class AdminStationController extends Controller
             'chargers' => $response
         ]);
     }
+    public function show($stationId)
+    {
+        $station = \App\Models\ChargerStation::with('cabinets.chargers')->findOrFail($stationId);
+        return response()->json(['station' => $station]);
+    }
     public function reportSummary($stationId)
     {
         $station = ChargerStation::with(['cabinets.chargers.bookings'])->findOrFail($stationId);
