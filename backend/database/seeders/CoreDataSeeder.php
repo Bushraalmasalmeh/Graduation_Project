@@ -20,7 +20,7 @@ class CoreDataSeeder extends Seeder
         // ======================
         \App\Models\Setting::factory()->create();
 
-        // ======================
+        // =====================
         // 2) ADMIN USER
         // ======================
         $admin = User::create([
@@ -28,6 +28,7 @@ class CoreDataSeeder extends Seeder
             'email' => 'admin@electra.com',
             'password' => bcrypt('123456'),
             'job_number' => '9000',
+            'phone' => '0782976665',
             'role_type' => 'admin',
             'department' => 'IT',
         ]);

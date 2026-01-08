@@ -41,8 +41,12 @@ class HardwareController extends Controller
             return response()->json(['status' => 'error', 'code' => 'NO_BOOKING']);
         }
 
-        return response()->json(['status' => 'success', 'user_name' => $booking->user->name]);
+        return response()->json([
+            'status' => 'success',
+            'user_name' => $booking->user->name
+        ]);
     }
+
 
 
     // ========== START SESSION ==========
