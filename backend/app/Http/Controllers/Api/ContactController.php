@@ -27,18 +27,18 @@ class ContactController extends Controller
             'message' => 'required|string|min:5',
         ]);
 
-        $user = $request->user();
+
+        $user = $request->user()->load('primaryPhone');
 
         $msg = ContactMessage::create([
             'user_id' => $user->id,
             'name'    => $user->name,
             'email'   => $user->email,
-            'phone'   => $user->phones()->first()->phone_no ?? null,
+            'phone'   => optional($user->primaryPhone)->phone_number,
             'message' => $request->message,
             'status'  => 'open'
         ]);
 
-        // ✅ Notify admins
         $this->notificationService->notifyAdmins(
             'Contact Message Received',
             'From ' . $msg->phone . ': ' . $msg->message,
@@ -50,7 +50,6 @@ class ContactController extends Controller
             'data'    => $msg
         ], 200);
     }
-
 
 
     public function myMessages(): JsonResponse

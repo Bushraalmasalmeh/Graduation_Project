@@ -35,10 +35,11 @@ class ProfileController extends Controller
         $admin->update(['name' => $request->name]);
 
         // Update or insert phone number in user_phones table
-        DB::table('user_phones')->updateOrInsert(
+        $admin->primaryPhone()->updateOrCreate(
             ['user_id' => $admin->id, 'type' => 'primary'],
             ['phone_number' => $request->phone_number]
         );
+
 
         return response()->json([
             'success' => true,
