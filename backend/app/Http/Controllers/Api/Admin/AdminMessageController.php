@@ -6,14 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Testing\Fluent\Concerns\Has;
 
 class AdminMessageController extends Controller
 {
     public function index()
     {
-        $messages = ContactMessage::with('user:id,name,email')
+        $messages = ContactMessage::with('user') // نجيب العلاقة كاملة
             ->latest()
             ->get()
             ->map(function ($msg) {
@@ -33,8 +31,6 @@ class AdminMessageController extends Controller
         return response()->json(['messages' => $messages]);
     }
 
-
-
     public function reply(Request $request, $id)
     {
         $request->validate([
@@ -53,13 +49,14 @@ class AdminMessageController extends Controller
         ]);
     }
 
-
-
     public function resolve($id)
     {
         $message = ContactMessage::findOrFail($id);
         $message->update(['status' => 'replied']);
 
-        return response()->json(['status' => 'success', 'message' => 'Message marked as resolved']);
+        return response()->json([
+            'status'  => 'success',
+            'message' => 'Message marked as resolved'
+        ]);
     }
 }

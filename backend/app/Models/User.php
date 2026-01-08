@@ -68,7 +68,14 @@ class User extends Authenticatable
     }
 
 
-
+    public function adminNotifications()
+    {
+        return $this->hasMany(Notification::class, 'admin_id');
+    }
+    public function primaryPhone()
+    {
+        return $this->hasOne(UserPhone::class)->where('type', 'primary');
+    }
 
     public function contactMessages()
     {
@@ -89,14 +96,5 @@ class User extends Authenticatable
             'Engineering'  => '18',
             default        => '13',
         };
-    }
-
-    public function adminNotifications()
-    {
-        return $this->hasMany(Notification::class, 'admin_id');
-    }
-    public function primaryPhone()
-    {
-        return $this->hasOne(UserPhone::class)->where('type', 'primary');
     }
 }
