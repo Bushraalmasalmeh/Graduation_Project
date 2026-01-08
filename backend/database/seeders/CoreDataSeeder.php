@@ -28,7 +28,6 @@ class CoreDataSeeder extends Seeder
             'email' => 'admin@electra.com',
             'password' => bcrypt('123456'),
             'job_number' => '9000',
-            'phone' => '0782976665',
             'role_type' => 'admin',
             'department' => 'IT',
         ]);
@@ -82,6 +81,7 @@ class CoreDataSeeder extends Seeder
                 'location' => $s['name'],
                 'department' => $s['department'],
                 'total_cabinets' => $s['cabinets'],
+'charger_number'=>$s['cabinets']*2,
                 'status' => 'active',
                 'description' => $s['description'],
             ]);
