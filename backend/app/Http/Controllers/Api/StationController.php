@@ -27,7 +27,7 @@ class StationController extends Controller
             'station' => $station
         ]);
     }
-    public function getAvailability(Request $request, $stationId)
+    public function getUserAvailability(Request $request, $stationId)
     {
         $station = ChargerStation::findOrFail($stationId);
 
@@ -36,7 +36,7 @@ class StationController extends Controller
 
         $startHour = 7;
         $endHour = 20;
-        $today = Carbon::today();
+        $today = Carbon::now('Asia/Amman')->startOfDay();
 
         $slots = [];
 

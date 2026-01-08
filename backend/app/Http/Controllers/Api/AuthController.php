@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Car;
+use App\Models\UserPhone;
 use App\Mail\ResetCodeMail;
 
 class AuthController extends Controller
@@ -25,8 +26,9 @@ class AuthController extends Controller
             'job_number'   => 'required|unique:users',
             'department'   => 'required',
             'role_type'    => 'required|in:faculty,staff,both',
-            'car_model' => 'required|string|max:50',
+            'car_model'    => 'required|string|max:50',
             'plate_number' => 'required|string|max:20|unique:cars',
+            'phone'        => 'required|string|max:20', // ← تأكد من وجوده
         ]);
 
         $user = User::create([
@@ -46,11 +48,17 @@ class AuthController extends Controller
             'car_image'    => null,
         ]);
 
+        // حفظ رقم الهاتف في جدول user_phones
+        $user->phones()->create([
+            'phone' => $request->phone,
+            'type'  => 'primary',
+        ]);
+
         $token = $user->createToken('user_token')->plainTextToken;
 
         return response()->json([
             'message' => 'User registered successfully',
-            'user'    => $user,
+            'user'    => $user->load('primaryPhone'),
             'token'   => $token
         ], 201);
     }
@@ -68,7 +76,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful',
-            'user'    => $user,
+            'user'    => $user->load('primaryPhone'),
             'token'   => $token
         ], 200);
     }
@@ -77,21 +85,21 @@ class AuthController extends Controller
     public function adminRegister(Request $request)
     {
         $request->validate([
-            'name'     => 'required|string',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
+            'name'       => 'required|string',
+            'email'      => 'required|email|unique:users',
+            'password'   => 'required|min:6|confirmed',
             'job_number' => 'required|unique:users',
-            'department' => 'required|string'
+            'department' => 'required|string',
         ]);
 
         $admin = User::create([
-            'name'      => $request->name,
-            'email'     => $request->email,
-            'password'  => bcrypt($request->password),
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'password'   => bcrypt($request->password),
             'job_number' => $request->job_number,
             'department' => $request->department,
-            'role_type' => 'admin',
-            'status'    => 'active',
+            'role_type'  => 'admin',
+            'status'     => 'active',
         ]);
 
         $token = $admin->createToken('admin_token')->plainTextToken;
@@ -118,7 +126,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Admin login successful',
-            'admin'   => $admin,
+            'admin'   => $admin->load('primaryPhone'),
             'token'   => $token
         ], 200);
     }
@@ -126,7 +134,20 @@ class AuthController extends Controller
     // ========== COMMON AUTH UTILITIES ==========
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        $user = $request->user()->load('primaryPhone');
+
+        return response()->json([
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'job_number' => $user->job_number,
+            'department' => $user->department,
+            'role_type'  => $user->role_type,
+            'status'     => $user->status,
+            'phone'      => optional($user->primaryPhone)->phone,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+        ]);
     }
 
     public function logout()
@@ -169,7 +190,6 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Reset code sent to your email.']);
     }
-
 
     public function verifyCode(Request $request)
     {
