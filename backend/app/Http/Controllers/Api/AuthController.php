@@ -28,7 +28,7 @@ class AuthController extends Controller
             'role_type'    => 'required|in:faculty,staff,both',
             'car_model'    => 'required|string|max:50',
             'plate_number' => 'required|string|max:20|unique:cars',
-            'phone'        => 'required|string|max:20', // ← تأكد من وجوده
+            'phone'        => 'required|string|max:10',
         ]);
 
         $user = User::create([
@@ -48,7 +48,6 @@ class AuthController extends Controller
             'car_image'    => null,
         ]);
 
-        // حفظ رقم الهاتف في جدول user_phones
         $user->phones()->create([
             'phone' => $request->phone,
             'type'  => 'primary',

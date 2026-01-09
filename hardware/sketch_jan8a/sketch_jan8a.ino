@@ -1,5 +1,4 @@
-// ESP32 Code for Charging Station with Keypad, LCD, Relay, and API Integration
-
+// ESP32 Code for Charging Station - Updated for Port 80 & Detailed Error Feedback
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -11,12 +10,15 @@
 #define WIFI_SSID "Electra"
 #define WIFI_PASSWORD "electra20262004"
 #define SERVER_IP "164.92.199.83"
-#define SERVER_PORT "8000"
-#define VERIFY_URL "http://" SERVER_IP ":" SERVER_PORT "/api/hardware/verify-job"
-#define START_URL "http://" SERVER_IP ":" SERVER_PORT "/api/hardware/start-session"
-#define STOP_URL "http://" SERVER_IP ":" SERVER_PORT "/api/hardware/stop-session"
+// ملاحظة: بما أن Nginx شغال، نستخدم المنفذ 80
+#define SERVER_PORT "80" 
+
+#define VERIFY_URL "http://" SERVER_IP "/api/hardware/verify-job"
+#define START_URL "http://" SERVER_IP "/api/hardware/start-session"
+#define STOP_URL "http://" SERVER_IP "/api/hardware/stop-session"
+
 #define API_KEY "Electra_Hardware_Key_2025_SECURE"
-#define DEVICE_UID "911"
+#define DEVICE_UID "911" 
 
 // ====== Pins ======
 #define RELAY_PIN 15
@@ -73,12 +75,8 @@ bool httpPostJson(const char* url, String json, String &response) {
 
   response = http.getString();
   http.end();
-  delay(100); 
-
-  return (code == 200);
+  return (code == 200 || code == 403 || code == 404 || code == 409); 
 }
-
-
 
 // ====== Lock Control ======
 void lockLCD() {
@@ -99,69 +97,14 @@ bool isLocked() {
   return true;
 }
 
-// ====== Idle Timeout ======
-void checkIdleTimeout() {
-  if (charging && millis() - lastKeyPress > 1800000) {
-    digitalWrite(RELAY_PIN, LOW);
-    digitalWrite(LED_GREEN, LOW);
-    charging = false;
-    show("Auto Stop", "Idle 30 min");
-    beep(1000);
-    delay(2000);
-    show("Welcome to 911", "Press any key");
-    welcomeShown = false;
-  }
-}
-
-// ====== Verify Job ======
-String verifyJob(String jobNumber) {
-  StaticJsonDocument<200> doc;
-  doc["job_number"] = jobNumber;
-  doc["uid"] = DEVICE_UID; // ← ضروري جدًا
-  String json; serializeJson(doc, json);
-  String resp;
-
-  Serial.println("Sending JSON: " + json);
-
-  if (!httpPostJson(VERIFY_URL, json, resp)) {
-    Serial.println("HTTP request failed");
-    return "error";
-  }
-
-  Serial.println("Response: " + resp);
-
-  StaticJsonDocument<256> resDoc;
-  if (deserializeJson(resDoc, resp)) return "error";
-
-  if (resDoc["status"] == "success") return "success";
-  if (resDoc["code"] == "NO_BOOKING") return "no_booking";
-  return "invalid";
-}
-
-
-// ====== Start Charging ======
-void startCharging() {
+// ====== Verify & Start Logic ======
+void handleChargingStart() {
   if (isLocked()) return;
-  show("Checking...", "Please wait");
+  
+  show("Verifying...", "Please wait");
+  beep(100);
 
-  String result = verifyJob(jobInput);
-  if (result != "success") {
-    retryCount++;
-    String msg = (result == "no_booking") ? "No Booking Found" : (retryCount == 1) ? "First miss"
-                                                               : (retryCount == 2) ? "Second miss"
-                                                                                   : "Final chance !";
-    show("Invalid Job No", msg);
-    digitalWrite(LED_RED, HIGH);
-    beep(800);
-    delay(2000);
-    digitalWrite(LED_RED, LOW);
-    if (retryCount >= 3) lockLCD();
-    else show("Enter Job No.", "Then #");
-    jobInput = "";
-    return;
-  }
-
-  retryCount = 0;
+  // 1. Prepare JSON
   StaticJsonDocument<200> doc;
   doc["job_number"] = jobInput;
   doc["uid"] = DEVICE_UID;
@@ -169,27 +112,49 @@ void startCharging() {
   serializeJson(doc, json);
   String resp;
 
+  // 2. Call START_URL (Includes validation in your Controller)
   if (httpPostJson(START_URL, json, resp)) {
-    StaticJsonDocument<256> resDoc;
+    StaticJsonDocument<512> resDoc;
     deserializeJson(resDoc, resp);
-    String userName = resDoc["user_name"].as<String>();
-    digitalWrite(RELAY_PIN, HIGH);
-    digitalWrite(LED_GREEN, HIGH);
-    charging = true;
-    show("Hello " + userName, "Start charge");
-    beep(200);
-    delay(100);
-    beep(200);
-    delay(10000);
-    show("Charging...", "");
+
+    String status = resDoc["status"] | "";
+    String message = resDoc["message"] | "";
+
+    if (status == "success") {
+      String userName = resDoc["user_name"].as<String>();
+      digitalWrite(RELAY_PIN, HIGH);
+      digitalWrite(LED_GREEN, HIGH);
+      charging = true;
+      show("Hello " + userName, "Charging Started");
+      beep(200); delay(100); beep(200);
+      delay(3000);
+      show("Charging...", "Press * to Stop");
+    } 
+    else {
+      // التعامل مع أخطاء الـ Validation من الـ Controller
+      digitalWrite(LED_RED, HIGH);
+      beep(800);
+      
+      if (message == "NO_BOOKING_FOUND") show("Error:", "No Booking Found");
+      else if (message == "BOOKING_NOT_STARTED_YET") show("Error:", "Too Early!");
+      else if (message == "BOOKING_EXPIRED") show("Error:", "Booking Expired");
+      else if (message == "ACTIVE_SESSION_EXISTS") show("Error:", "Already Active");
+      else show("Access Denied", "Try Again");
+
+      delay(3000);
+      digitalWrite(LED_RED, LOW);
+      
+      retryCount++;
+      if (retryCount >= 3) lockLCD();
+      else show("Enter Job No.", "Then #");
+    }
   } else {
-    show("Start Failed", "Try Again");
+    show("Server Error", "Check Connection");
     digitalWrite(LED_RED, HIGH);
-    beep(600);
-    delay(1000);
+    beep(1000);
+    delay(2000);
     digitalWrite(LED_RED, LOW);
   }
-
   jobInput = "";
 }
 
@@ -212,10 +177,10 @@ void stopCharging() {
     show("Welcome to 911", "Press any key");
     welcomeShown = false;
   } else {
-    show("Stop Failed", "");
+    show("Stop Failed", "Try Again");
     digitalWrite(LED_RED, HIGH);
     beep(800);
-    delay(1000);
+    delay(1500);
     digitalWrite(LED_RED, LOW);
   }
 }
@@ -226,31 +191,36 @@ void setup() {
   Wire.begin(21, 22);
   lcd.init();
   lcd.backlight();
+  
   pinMode(LED_GREEN, OUTPUT);
   pinMode(LED_RED, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
   pinMode(BUZZER_PIN, OUTPUT);
+  
   digitalWrite(RELAY_PIN, LOW);
   digitalWrite(LED_GREEN, LOW);
   digitalWrite(LED_RED, LOW);
-  show("Connecting", "to WiFi...");
+
+  show("ELECTRA SYSTEM", "Connecting...");
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  
   int tries = 0;
   while (WiFi.status() != WL_CONNECTED && tries < 30) {
     delay(500);
     Serial.print(".");
     tries++;
   }
+
   if (WiFi.status() == WL_CONNECTED) {
-    show("WiFi Connected", WiFi.localIP().toString());
+    show("System Online", "IP: " + WiFi.localIP().toString());
     beep(200);
     delay(2000);
   } else {
-    show("WiFi Failed", "Restart Device");
+    show("WiFi Error", "Manual Restart");
     digitalWrite(LED_RED, HIGH);
-    while (1)
-      ;
+    while (1);
   }
+  
   show("Welcome to 911", "Press any key");
   lastKeyPress = millis();
 }
@@ -258,7 +228,6 @@ void setup() {
 // ====== Loop ======
 void loop() {
   if (isLocked()) {
-    checkIdleTimeout();
     delay(500);
     return;
   }
@@ -268,7 +237,7 @@ void loop() {
     lastKeyPress = millis();
     beep(50);
     if (!welcomeShown) {
-      show("Enter Job No.", "Press # to confirm");
+      show("Enter Job No.", "Press #");
       welcomeShown = true;
     }
 
@@ -276,21 +245,10 @@ void loop() {
       if (jobInput.length() < 10) {
         jobInput += key;
         show("Job No:", jobInput);
-      } else {
-        show("Max 10 digits");
-        beep(600);
-        delay(1500);
-        show("Job No:", jobInput);
       }
     } else if (key == '#' && !charging) {
-      if (jobInput.length() < 1) {
-        show("Enter at least 1 digit");
-        beep(600);
-        delay(1500);
-        show("Enter Job No", "Then #");
-      } else {
-        startCharging();
-      }
+      if (jobInput.length() > 0) handleChargingStart();
+      else show("Enter No. First");
     } else if (key == '*') {
       if (charging) stopCharging();
       else {

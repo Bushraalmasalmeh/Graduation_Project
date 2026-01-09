@@ -21,11 +21,11 @@ class HardwareController extends Controller
             'uid' => 'required|string',
         ]);
 
+        $now = Carbon::now('Asia/Amman'); // توحيد التوقيت
+
         $booking = Booking::with('user')
             ->where('UID', $request->uid)
             ->where('status', 'pending')
-            ->where('start_time', '<=', now())
-            ->where('end_time', '>=', now())
             ->whereHas('user', function ($q) use ($request) {
                 $q->where('job_number', $request->job_number);
             })
@@ -33,6 +33,15 @@ class HardwareController extends Controller
 
         if (!$booking) {
             return response()->json(['status' => 'error', 'code' => 'NO_BOOKING']);
+        }
+
+        // فحص إضافي للتوقيت ليعرف الهاردوير لماذا فشل الطلب
+        if ($now->lt(Carbon::parse($booking->start_time)->setTimezone('Asia/Amman'))) {
+            return response()->json(['status' => 'error', 'code' => 'TOO_EARLY']);
+        }
+
+        if ($now->gt(Carbon::parse($booking->end_time)->setTimezone('Asia/Amman'))) {
+            return response()->json(['status' => 'error', 'code' => 'EXPIRED']);
         }
 
         return response()->json([
