@@ -51,6 +51,7 @@ class AuthController extends Controller
         $user->phones()->create([
             'phone' => $request->phone,
             'type'  => 'primary',
+            'is_verified' => false,
         ]);
 
         $token = $user->createToken('user_token')->plainTextToken;
@@ -221,7 +222,7 @@ class AuthController extends Controller
         $record = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->where('token', $request->code)
-            ->where('expires_at', '>=', now())
+            ->where('created_at', '>=', now()->subMinutes(60))
             ->first();
 
         if (!$record) {

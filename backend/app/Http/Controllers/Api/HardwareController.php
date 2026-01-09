@@ -9,23 +9,28 @@ use App\Models\User;
 use App\Models\UsageSession;
 use App\Models\Charger;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class HardwareController extends Controller
 {
+    /**
+     * الخطوة 1: التحقق من وجود حجز (عند إدخال الرقم الوظيفي في الكيباد)
+     */
     public function verifyJob(Request $request)
     {
         $request->validate([
             'job_number' => 'required|string',
-            'uid' => 'required|string',
+            'uid' => 'required|string', // UID الشاحن (مثلاً 911)
         ]);
 
-        $now = Carbon::now('Asia/Amman'); // توحيد التوقيت
+        $now = Carbon::now('Asia/Amman');
 
+        // البحث عن حجز "Pending" مرتبط بالشاحن الصحيح عبر الـ UID والمستخدم عبر الرقم الوظيفي
         $booking = Booking::with('user')
-            ->where('UID', $request->uid)
             ->where('status', 'pending')
+            ->whereHas('charger', function ($q) use ($request) {
+                $q->where('uid', $request->uid);
+            })
             ->whereHas('user', function ($q) use ($request) {
                 $q->where('job_number', $request->job_number);
             })
@@ -35,12 +40,19 @@ class HardwareController extends Controller
             return response()->json(['status' => 'error', 'code' => 'NO_BOOKING']);
         }
 
-        // فحص إضافي للتوقيت ليعرف الهاردوير لماذا فشل الطلب
-        if ($now->lt(Carbon::parse($booking->start_time)->setTimezone('Asia/Amman'))) {
-            return response()->json(['status' => 'error', 'code' => 'TOO_EARLY']);
+        // فحص النوافذ الزمنية للتأكد أن الحجز فعال الآن
+        $start = Carbon::parse($booking->start_time)->setTimezone('Asia/Amman');
+        $end = Carbon::parse($booking->end_time)->setTimezone('Asia/Amman');
+
+        if ($now->lt($start)) {
+            return response()->json([
+                'status' => 'error',
+                'code' => 'TOO_EARLY',
+                'starts_at' => $start->format('H:i')
+            ]);
         }
 
-        if ($now->gt(Carbon::parse($booking->end_time)->setTimezone('Asia/Amman'))) {
+        if ($now->gt($end)) {
             return response()->json(['status' => 'error', 'code' => 'EXPIRED']);
         }
 
@@ -50,6 +62,9 @@ class HardwareController extends Controller
         ]);
     }
 
+    /**
+     * الخطوة 2: بدء الجلسة وفتح الريلاي (عند تأكيد المستخدم بالضغط على #)
+     */
     public function startSession(Request $request)
     {
         $request->validate([
@@ -58,55 +73,34 @@ class HardwareController extends Controller
         ]);
 
         $now = Carbon::now('Asia/Amman');
-
         $user = User::where('job_number', $request->job_number)->first();
-        if (!$user) {
-            return response()->json(['message' => 'USER_NOT_FOUND'], 404);
-        }
 
-        $activeSession = UsageSession::where('user_id', $user->id)
-            ->where('status', 'active')
-            ->exists();
+        if (!$user) return response()->json(['message' => 'USER_NOT_FOUND'], 404);
 
-        if ($activeSession) {
-            return response()->json(['message' => 'ACTIVE_SESSION_EXISTS'], 409);
-        }
-
+        // جلب الحجز المعلق المرتبط بالشاحن والمستخدم
         $booking = Booking::where('user_id', $user->id)
-            ->where('UID', $request->uid)
             ->where('status', 'pending')
+            ->whereHas('charger', function ($q) use ($request) {
+                $q->where('uid', $request->uid);
+            })
             ->first();
 
-        if (!$booking) {
-            return response()->json(['message' => 'NO_BOOKING_FOUND'], 404);
-        }
-
-        $bookingStart = Carbon::parse($booking->start_time)->setTimezone('Asia/Amman');
-        $bookingEnd = Carbon::parse($booking->end_time)->setTimezone('Asia/Amman');
-
-        if (!$bookingStart->isToday()) {
-            return response()->json(['message' => 'BOOKING_NOT_FOR_TODAY'], 403);
-        }
-
-        if ($now->lt($bookingStart)) {
-            return response()->json(['message' => 'BOOKING_NOT_STARTED_YET'], 403);
-        }
-
-        if ($now->gt($bookingEnd)) {
-            return response()->json(['message' => 'BOOKING_EXPIRED'], 403);
-        }
+        if (!$booking) return response()->json(['message' => 'NO_BOOKING_FOUND'], 404);
 
         return DB::transaction(function () use ($booking, $user, $request, $now) {
+            // تحديث حالة الحجز إلى "نشط"
             $booking->update([
                 'status' => 'active',
                 'actual_start_time' => $now
             ]);
 
-            $charger = Charger::where('UID', $request->uid)->first();
+            // تحديث حالة الشاحن ليصبح مشغولاً
+            $charger = Charger::where('uid', $request->uid)->first();
             if ($charger) {
                 $charger->update(['status' => 'busy']);
             }
 
+            // إنشاء سجل جلسة الشحن
             $session = UsageSession::create([
                 'booking_id'    => $booking->id,
                 'user_id'       => $user->id,
@@ -119,60 +113,72 @@ class HardwareController extends Controller
                 'status' => 'success',
                 'message' => 'START_CONFIRMED',
                 'user_name' => $user->name,
-                'session_id' => $session->id,
-                'start_time_jordan' => $now->format('Y-m-d H:i:s'),
                 'activate_charging' => true
             ]);
         });
     }
 
+    /**
+     * الخطوة 3: إنهاء الجلسة وإغلاق الريلاي (آمن - يتطلب الرقم الوظيفي)
+     */
     public function stopSession(Request $request)
     {
+        // تم إضافة job_number لضمان أن صاحب الحجز هو من يقوم بالإيقاف
         $request->validate([
-            'uid' => 'required|string'
+            'uid' => 'required|string',
+            'job_number' => 'required|string'
         ]);
 
         $now = Carbon::now('Asia/Amman');
 
         return DB::transaction(function () use ($request, $now) {
-            $booking = Booking::where('UID', $request->uid)
+            // البحث عن الحجز النشط المرتبط بهذا الشاحن "و" هذا الرقم الوظيفي
+            $booking = Booking::whereHas('charger', function ($q) use ($request) {
+                $q->where('uid', $request->uid);
+            })
+                ->whereHas('user', function ($q) use ($request) {
+                    $q->where('job_number', $request->job_number);
+                })
                 ->where('status', 'active')
                 ->first();
 
+            // إذا لم يتطابق الرقم الوظيفي مع الحجز النشط على هذا الشاحن
             if (!$booking) {
-                return response()->json(['message' => 'NO_ACTIVE_BOOKING_FOUND'], 404);
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'UNAUTHORIZED_OR_NO_SESSION'
+                ], 403);
             }
 
+            // جلب الجلسة النشطة لإنهائها وحساب المدة
             $session = UsageSession::where('booking_id', $booking->id)
                 ->where('status', 'active')
-                ->latest('session_start')
                 ->first();
 
-            if (!$session) {
-                return response()->json(['message' => 'NO_ACTIVE_SESSION_FOUND'], 404);
+            if ($session) {
+                $duration = $now->diffInMinutes(Carbon::parse($session->session_start));
+                $session->update([
+                    'session_end' => $now,
+                    'duration'    => $duration,
+                    'status'      => 'completed'
+                ]);
             }
 
-            $duration = $now->diffInMinutes(Carbon::parse($session->session_start));
-
-            $session->update([
-                'session_end' => $now,
-                'duration'    => $duration,
-                'status'      => 'completed'
-            ]);
-
+            // تحديث حالة الحجز والشاحن
             $booking->update([
                 'status' => 'completed',
                 'actual_end_time' => $now
             ]);
 
-            if ($session->charger) {
-                $session->charger->update(['status' => 'available']);
+            $charger = Charger::where('uid', $request->uid)->first();
+            if ($charger) {
+                $charger->update(['status' => 'available']);
             }
 
             return response()->json([
-                'message' => 'SESSION_STOPPED_SUCCESSFULLY',
-                'success' => true,
-                'duration_minutes' => $duration
+                'status' => 'success',
+                'message' => 'SESSION_STOPPED',
+                'duration_minutes' => $duration ?? 0
             ]);
         });
     }

@@ -20,7 +20,6 @@ class User extends Authenticatable
         'job_number',
         'department',
         'role_type',
-        'phone',
         'car_model',
         'device_token',
         'status',
@@ -96,5 +95,9 @@ class User extends Authenticatable
             'Engineering'  => '18',
             default        => '13',
         };
+    }
+    public function phones()
+    {
+        return $this->hasMany(UserPhone::class);
     }
 }
