@@ -210,16 +210,24 @@ class BookingController extends Controller
         $uid = $request->uid;
         $date = $request->date ?? now()->toDateString();
 
+        $charger = Charger::where('uid', $uid)->with('cabinet')->first();
+        if (!$charger) {
+            return response()->json(['message' => 'Charger not found'], 404);
+        }
+
         $startHour = 8;
         $endHour = 20;
 
-        $slots = collect(range($startHour, $endHour))->map(function ($hour) use ($date) {
+        $slots = collect(range($startHour, $endHour))->map(function ($hour) use ($date, $charger) {
             $start = Carbon::parse("$date $hour:00:00");
-            $end = Carbon::parse("$date $hour:59:59");
+            $end   = Carbon::parse("$date $hour:59:59");
             return [
-                'start' => $start->toIso8601String(),
-                'end' => $end->toIso8601String(),
-                'status' => 'available'
+                'from'       => $start->toIso8601String(),
+                'to'         => $end->toIso8601String(),
+                'status'     => 'available',
+                'charger_id' => $charger->id,
+                'station_id' => $charger->cabinet->station_id,
+                'uid'        => $charger->uid,
             ];
         });
 
@@ -230,11 +238,14 @@ class BookingController extends Controller
         foreach ($slots as &$slot) {
             foreach ($booked as $booking) {
                 $bookingStart = Carbon::parse($booking->start_time);
-                $bookingEnd = Carbon::parse($booking->end_time);
-                $slotStart = Carbon::parse($slot['start']);
-                $slotEnd = Carbon::parse($slot['end']);
+                $bookingEnd   = Carbon::parse($booking->end_time);
+                $slotStart    = Carbon::parse($slot['from']);
+                $slotEnd      = Carbon::parse($slot['to']);
 
-                if ($slotStart->between($bookingStart, $bookingEnd) || $slotEnd->between($bookingStart, $bookingEnd)) {
+                if (
+                    $slotStart->between($bookingStart, $bookingEnd) ||
+                    $slotEnd->between($bookingStart, $bookingEnd)
+                ) {
                     $slot['status'] = 'booked';
                     break;
                 }
@@ -242,64 +253,5 @@ class BookingController extends Controller
         }
 
         return response()->json(['schedule' => $slots]);
-    }
-    public function create(Request $request)
-    {
-        $data = $request->validate([
-            'station_id' => 'required|exists:charger_stations,id',
-            'charger_id' => 'required|exists:chargers,id',
-            'start_time' => 'required|date',
-            'duration_minutes' => 'required|integer|in:60,90,120',
-        ]);
-
-        $user = $request->user();
-        $start = Carbon::parse($data['start_time']);
-        $end = $start->copy()->addMinutes($data['duration_minutes']);
-
-        if (!$start->isSameDay(Carbon::now())) {
-            return response()->json(['code' => 'ONLY_TODAY_ALLOWED'], 422);
-        }
-
-        $station = \App\Models\ChargerStation::findOrFail($data['station_id']);
-        $workingStart = Carbon::parse($start->format('Y-m-d') . ' 08:00');
-        $workingEnd = Carbon::parse($start->format('Y-m-d') . ' 20:00');
-        if ($start < $workingStart || $end > $workingEnd) {
-            return response()->json(['code' => 'OUT_OF_WORKING_HOURS'], 422);
-        }
-
-        $bufferMinutes = 5;
-        $overlapExists = \App\Models\Booking::where('charger_id', $data['charger_id'])
-            ->whereIn('status', ['pending', 'active'])
-            ->where(function ($q) use ($start, $end, $bufferMinutes) {
-                $q->where('start_time', '<', $end->copy()->addMinutes($bufferMinutes))
-                    ->where('end_time', '>', $start->copy()->subMinutes($bufferMinutes));
-            })->exists();
-
-        if ($overlapExists) {
-            return response()->json(['code' => 'TIME_CONFLICT'], 422);
-        }
-
-        $booking = \App\Models\Booking::create([
-            'user_id' => $user->id,
-            'station_id' => $data['station_id'],
-            'charger_id' => $data['charger_id'],
-            'UID' => \App\Models\Charger::find($data['charger_id'])->uid,
-            'start_time' => $start,
-            'end_time' => $end,
-            'status' => 'pending',
-        ]);
-
-        return response()->json([
-            'message' => 'BOOKING_CREATED',
-            'booking' => [
-                'id' => $booking->id,
-                'station_id' => $booking->station_id,
-                'charger_id' => $booking->charger_id,
-                'uid' => $booking->UID,
-                'start_time' => $booking->start_time->toIso8601String(),
-                'end_time' => $booking->end_time->toIso8601String(),
-                'status' => $booking->status,
-            ]
-        ], 201);
     }
 }
