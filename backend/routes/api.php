@@ -33,6 +33,13 @@ Route::post('/user/login', [AuthController::class, 'userLogin']);
 //ADMIN AUTH ROUTES
 Route::post('/admin/register', [AuthController::class, 'adminRegister']);
 Route::post('/admin/login', [AuthController::class, 'adminLogin']);
+// ==================== HARDWARE ROUTES ====================
+
+Route::prefix('hardware')->group(function () {
+    Route::post('/verify-job', [HardwareController::class, 'verifyJob']);
+    Route::post('/start-session', [HardwareController::class, 'startSession']);
+    Route::post('/stop-session', [HardwareController::class, 'stopSession']);
+});
 // COMMON AUTH ROUTES
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -46,12 +53,7 @@ Route::post('/resetPassword', [AuthController::class, 'resetPassword']);
 Route::get('/stations', [StationController::class, 'index']);
 Route::get('/stations/{id}', [StationController::class, 'show']);
 
-// ==================== HARDWARE ROUTES ====================
 
-Route::middleware(['hardware.auth'])->prefix('hardware')->group(function () {
-    Route::post('/start-session', [HardwareController::class, 'startSession']);
-    Route::post('/stop-session', [HardwareController::class, 'stopSession']);
-});
 
 // ==================== USER ROUTES ====================
 
@@ -83,7 +85,7 @@ Route::middleware(['auth:sanctum', 'check.user.status'])->group(function () {
     Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
     Route::post('/notifications/test', [NotificationController::class, 'test']);
 
-    Route::get('/stations/{stationId}/availability', [StationController::class, 'getAvailability']);
+    Route::get('/stations/{stationId}/availability', [StationController::class, 'getUserAvailability']);
     Route::post('/bookings/create', [BookingController::class, 'create'])->middleware('auth:sanctum');
 
 
