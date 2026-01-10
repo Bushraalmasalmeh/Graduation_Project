@@ -1,415 +1,472 @@
-// assets/js/app.js - UPDATED FOR REAL API
-
+// assets/js/app.js
 document.addEventListener('DOMContentLoaded', async () => {
-    setupSidebar();
-    setupLogout();
+    // 1. Initialize client-only UI pieces first
+    setupGlobalUI();
 
-    // التوجيه (Routing)
-    if (document.getElementById('stats-total-users')) await loadDashboardData();
-    if (document.getElementById('users-table-body')) await loadUsersPage();
-    if (document.getElementById('chargers-table-body')) await loadChargersPage();
-    // 2. صفحة إضافة شاحن
-    if (document.getElementById('add-charger-form')) setupAddChargerPage();
-    if (document.getElementById('edit-charger-form')) await setupEditChargerPage();
-
-    if (document.getElementById('compose-notification-form')) setupNotificationPage();
-
-    // الصفحات التي ليس لها API في الملفات المرفقة (Bookings, Support)
-    if (document.getElementById('bookings-table-body')) await loadBookingsPage();
-
-    if (document.getElementById('detail-id')) await setupBookingDetailsPage();
-    // const addBookingForm = document.getElementById('add-booking-form');
-    //     if (addBookingForm) {
-    //         console.log("✅ Add Booking Page Detected!"); 
-    //         await setupAddBookingPage();
-    //     }
-    if (document.getElementById('support-table-body')) await loadSupportPage();
-    await loadCurrentUserProfile();
-        if (document.getElementById('consumptionChart')) {
-        loadReportsData();
-    }
-   
-});
-// دالة جديدة لجلب بياناتي من السيرفر مباشرة
-async function loadCurrentUserProfile() {
-    // تحديث الـ IDs لتطابق الموجود في ملف HTML الخاص بكِ
-    const nameEl = document.getElementById('user-name'); 
-    const emailEl = document.getElementById('user-email');
-
+    // 2. Attempt to fetch user data quietly (do not block UI if it fails)
     try {
-        // طلب البيانات من السيرفر
-        const user = await API.get('/api/me');
-
-        // 1. تحديث القائمة الجانبية (Sidebar)
-        if (nameEl) nameEl.innerText = user.name;
-        if (emailEl) emailEl.innerText = user.email;
-
-        // 2. تحديث حقول الإدخال (Form Inputs) إذا وجدت في الصفحة
-        const inputName = document.getElementById('input-name');
-        const inputEmail = document.getElementById('input-email');
-        const inputPhone = document.getElementById('input-phone');
-
-        if (inputName) inputName.value = user.name;
-        if (inputEmail) inputEmail.value = user.email;
-        
-        // استخدام رقم الوظيفة أو الهاتف بناءً على استجابة السيرفر
-        if (inputPhone) {
-            inputPhone.value = user.job_number || user.phone || '';
-        }
-
-    } catch (error) {
-        console.error('Could not fetch user profile', error);
+        await loadCurrentUserProfile();
+    } catch (e) {
+        console.warn("⚠️ Sidebar profile unavailable (Server down or CORS issue)");
     }
+
+    // 3. Run the router for the current page
+    initializePageRouter();
+});
+
+async function initializePageRouter() {
+    const path = window.location.pathname;
+    const page = path.split("/").pop();
+
+    switch (page) {
+        case 'forgot-password.html':
+            setupForgotPasswordPage();
+            break;
+        case 'reset-password.html': // Verification code page
+            setupVerifyCodePage();
+            break;
+        case 'set-new-password.html':
+            setupSetNewPasswordPage();
+            break;
+        // Other pages (Dashboard, Settings, etc.)
+        default:
+            console.log("Routing to default or home...");
+    }
+
+    const pageTargets = {
+        // 'consumptionChart': initializeReportsPage,
+        
+        'users-table-body': loadUsersPage,
+        'chargers-table-body': loadChargersPage,
+        'stats-total-users': loadDashboardData,
+        'profile-name': loadUserProfilePage,
+        'add-charger-form': setupAddChargerPage,
+        'edit-charger-form': setupEditChargerPage,
+        'bookings-table-body': loadBookingsPage,
+        'detail-id': setupBookingDetailsPage,
+        'support-table-body': loadSupportMessages,
+        'profile-form': setupAccountSettingsPage,      // settings.html
+        'change-password-form': setupSecurityPage,     // settings-security.html
+        'system-settings-form': setupSystemSettings,
+        // Shared elements (sidebar, etc.) should stay last
+        'stats-total-users': loadDashboardData,
+        'profile-name': loadUserProfilePage
+
+
+    };
+
+    for (const [id, initFunction] of Object.entries(pageTargets)) {
+        if (document.getElementById(id)) {
+            console.log(`🎯 Found Target: ${id}`); // Logs the ID that triggered initialization
+            try {
+                await initFunction();
+            } catch (error) {
+                console.error(`❌ Page Logic Error (${id}):`, error.message);
+            }
+            break;
+        }
+    }
+
 }
-async function updateAdminProfile() {
-    const saveBtn = document.getElementById('save-profile-btn');
-    if (!saveBtn) return;
+function setupGlobalUI() {
+    // Logic for mobile sidebar toggle (Responsive)
+    const menuToggle = document.getElementById('menu-toggle');
+    const wrapper = document.getElementById('wrapper');
+    if (menuToggle && wrapper) {
+        menuToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            wrapper.classList.toggle('toggled');
+        });
+    }
 
-    saveBtn.addEventListener('click', async (e) => {
-        e.preventDefault(); // لمنع أي سلوك افتراضي للفورم
-
-        // 1. نأخذ البيانات التي يسمح للآدمن بتغييرها فقط
-        const updatedData = {
-            name: document.getElementById('input-name').value.trim(),
-            job_number: document.getElementById('input-phone').value.trim()
-        };
-
-        // 2. تحقق بسيط (Client-side validation)
-        if (!updatedData.name) {
-            Utils.showError('الاسم مطلوب ولا يمكن تركه فارغاً');
-            return;
-        }
-
-        try {
-            // استخدام Utils التي برمجتِها لإظهار حالة التحميل
-            Utils.setLoading('save-profile-btn', true);
-            
-            // 3. الربط مع المسار المخصص للتحديث (حسب Admin.json)
-            // لاحظي أننا لم نرسل "email" هنا
-            await API.post('/api/admin/settings/update', updatedData);
-
-            // 4. تحديث "السايد بار" فوراً بالاسم الجديد ليعكس التغيير للمستخدم
-            const sidebarName = document.getElementById('user-name');
-            if (sidebarName) sidebarName.innerText = updatedData.name;
-            
-            Utils.showSuccess('تم التحديث', 'تم حفظ التغييرات بنجاح');
-            
-        } catch (error) {
-            // عرض رسالة الخطأ القادمة من الباك آند (مثل: رقم الوظيفة مكرر)
-            Utils.showError('فشل التحديث: ' + error.message);
-        } finally {
-            // إعادة الزر لحالته الطبيعية
-            Utils.setLoading('save-profile-btn', false, 'Save Changes');
-        }
+    // Logic for logout buttons
+    document.querySelectorAll('.logout-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            API.handleSessionExpired(); // Uses our central logout logic
+        });
     });
 }
-// ==========================================
-// 1. Dashboard Logic (Admin.json)
-// ==========================================
-async function loadDashboardData() {
-    console.log("🚀 Loading Dashboard Data...");
 
-    // 1. جلب الإحصائيات العامة (Users & Chargers)
+async function loadCurrentUserProfile() {
+    const nameDisplay = document.getElementById('user-name');
+    const emailDisplay = document.getElementById('user-email');
+
+    // Selectors for settings form (if exists)
+    const inputFields = {
+        name: document.getElementById('input-name'),
+        email: document.getElementById('input-email'),
+        job: document.getElementById('input-job-number'),
+        phone: document.getElementById('input-phone')
+    };
+
     try {
-        const stats = await API.get('/api/admin/dashboard');
-        
-        if(document.getElementById('stats-total-users')) 
-            document.getElementById('stats-total-users').innerText = stats.total_users || 0;
-        
-        if(document.getElementById('stats-total-chargers')) 
-            document.getElementById('stats-total-chargers').innerText = stats.total_stations || stats.total_chargers || 0;
-        
-        // ملاحظة: لن نعتمد على stats.active_sessions هنا لأنه يعطي 0
+        // Fetch fresh data from API
+        const user = await API.get('/api/me');
+
+        // 1. Update Sidebar Information (Safely escaped)
+        if (nameDisplay) nameDisplay.innerText = Utils.escapeHTML(user.name);
+        if (emailDisplay) emailDisplay.innerText = Utils.escapeHTML(user.email);
+
+        // 2. Update Settings Form (if we are on settings.html)
+        if (inputFields.name) inputFields.name.value = user.name || '';
+        if (inputFields.email) inputFields.email.value = user.email || '';
+        if (inputFields.job) inputFields.job.value = user.job_number || '';
+        if (inputFields.phone) inputFields.phone.value = user.phone || '';
+
+        // Update local storage cache to keep it in sync
+        localStorage.setItem(CONFIG.USER_DATA_KEY, JSON.stringify(user));
+
     } catch (error) {
-        console.error('Stats Error:', error);
-    }
+        console.warn("⚠️ Sidebar profile failed to load:", error.message);
 
-    // 2. جلب الحجوزات لحساب Active Sessions وتعبئة الجدول
-    const tableBody = document.getElementById('recent-bookings-body');
-    const activeSessionsEl = document.getElementById('stats-active-sessions');
-
-    try {
-        // جلب كل الحجوزات
-        const response = await API.get('/api/admin/bookings');
-        let bookings = response.bookings || response.data || response;
-
-        if (Array.isArray(bookings)) {
-            // أ) حساب الجلسات النشطة (Active Sessions)
-            // نعد الحجوزات التي حالتها 'active' (أو 'confirmed' إذا كنتِ تعتبرينها نشطة)
-            const activeCount = bookings.filter(b => 
-                (b.status || '').toLowerCase() === 'active'
-            ).length;
-
-            // تحديث الرقم في الكارد
-            if(activeSessionsEl) activeSessionsEl.innerText = activeCount;
-
-
-            // ب) ترتيب وعرض الجدول (آخر 5 حجوزات)
-            bookings.sort((a, b) => b.id - a.id);
-            const recent = bookings.slice(0, 5);
-
-            if (tableBody) {
-                tableBody.innerHTML = ''; 
-                if (recent.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No reservations found.</td></tr>';
-                } else {
-                    recent.forEach(b => {
-                        const start = new Date(b.start_time);
-                        const end = new Date(b.end_time);
-                        const durationMins = Math.round((end - start) / 60000);
-
-                        let statusClass = 'pending';
-                        const status = (b.status || 'unknown').toLowerCase();
-                        if (status === 'active' || status === 'confirmed') statusClass = 'confirmed';
-                        else if (status === 'cancelled') statusClass = 'cancelled';
-
-                        const stationName = b.station ? b.station.station_name : `Station ${b.station_id}`;
-                        const userName = b.user ? b.user.name : `User ${b.user_id}`;
-
-                        tableBody.innerHTML += `
-                            <tr>
-                                <td>#${b.id}</td>
-                                <td>${userName}</td>
-                                <td>${stationName}</td>
-                                <td>${durationMins} min</td>
-                                <td><span class="status ${statusClass}">${b.status}</span></td>
-                            </tr>
-                        `;
-                    });
-                }
-            }
+        // Fallback: Use data from localStorage if API fails
+        const cachedUser = JSON.parse(localStorage.getItem(CONFIG.USER_DATA_KEY));
+        if (cachedUser) {
+            if (nameDisplay) nameDisplay.innerText = Utils.escapeHTML(cachedUser.name);
+            if (emailDisplay) emailDisplay.innerText = Utils.escapeHTML(cachedUser.email);
         }
-    } catch (error) {
-        console.error('Bookings Data Error:', error);
-        if(tableBody) tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load data.</td></tr>';
     }
 }
+/**
+ * Loads and renders all dashboard statistics and recent activities.
+ */
+async function loadDashboardData() {
+    const selectors = {
+        totalUsers: 'stats-total-users',
+        totalChargers: 'stats-total-chargers',
+        activeSessions: 'stats-active-sessions',
+        tableBody: 'recent-bookings-body'
+    };
+
+    console.log("🚀 Initializing Dashboard Data Fetch...");
+
+    try {
+        // 1. Concurrent fetching for speed
+        const [stats, bookingsResponse] = await Promise.all([
+            API.get('/api/admin/dashboard'),
+            API.get('/api/admin/bookings')
+        ]);
+
+        const bookings = bookingsResponse.bookings || bookingsResponse.data || [];
+
+        // 2. Render Global Statistics
+        updateElementText(selectors.totalUsers, stats.total_users || 0);
+        updateElementText(selectors.totalChargers, stats.total_stations || stats.total_chargers || 0);
+
+        // Compute active sessions from the bookings array
+        const activeCount = bookings.filter(b => (b.status || '').toLowerCase() === 'active').length;
+        updateElementText(selectors.activeSessions, activeCount);
+
+        // 3. Render Recent Bookings Table
+        renderRecentBookingsTable(selectors.tableBody, bookings);
+
+    } catch (error) {
+        console.error('❌ Dashboard Loading Error:', error);
+        // Show an error row in the table for the user
+        const table = document.getElementById(selectors.tableBody);
+        if (table) table.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Error loading data.</td></tr>`;
+    }
+}
+/**
+ * Logic for rendering the recent bookings table
+ */
+function renderRecentBookingsTable(tableId, bookings) {
+    const tableBody = document.getElementById(tableId);
+    if (!tableBody) return;
+
+    // Sort bookings by id desc and take the latest five
+    const recentBookings = [...bookings]
+        .sort((a, b) => b.id - a.id)
+        .slice(0, 5);
+
+    if (recentBookings.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No recent reservations found.</td></tr>';
+        return;
+    }
+
+    // Build the table markup once for better performance
+    const rowsHtml = recentBookings.map(booking => {
+        const duration = calculateDuration(booking.start_time, booking.end_time);
+        const statusInfo = getStatusStyle(booking.status);
+
+        return `
+            <tr>
+                <td><strong>#${booking.id}</strong></td>
+                <td>${Utils.escapeHTML(booking.user?.name || `User ${booking.user_id}`)}</td>
+                <td>${Utils.escapeHTML(booking.station?.station_name || `Station ${booking.station_id}`)}</td>
+                <td>${duration} mins</td>
+                <td><span class="status ${statusInfo.class}">${Utils.escapeHTML(booking.status)}</span></td>
+            </tr>
+        `;
+    }).join('');
+
+    tableBody.innerHTML = rowsHtml;
+}
+// --- Helper Functions ---
+function updateElementText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.innerText = text;
+}
+
+function calculateDuration(start, end) {
+    const diff = new Date(end) - new Date(start);
+    return diff > 0 ? Math.round(diff / 60000) : 0;
+}
+
+function getStatusStyle(status = '') {
+    const s = (status || '').toLowerCase();
+    if (["active", "confirmed", "completed"].includes(s)) return { class: 'confirmed' };
+    if (s === 'cancelled') return { class: 'cancelled' };
+    return { class: 'pending' };
+}
+// 1. Global State for Users
+let allUsersData = [];
+let currentUsersPage = 1;
+const usersRowsPerPage = 10;
+
 // ==========================================
-// 2. Users Page Logic (Admin.json)
-
-// متغيرات عامة لحفظ حالة الصفحة
-let allUsersData = [];       // مخزن لكل المستخدمين القادمين من السيرفر
-let currentUsersPage = 1;    // الصفحة الحالية
-const usersRowsPerPage = 10;  // عدد الأسطر في كل صفحة
-
+// 2. Main Loader for Users Page
+// ==========================================
 async function loadUsersPage() {
     const tableBody = document.getElementById('users-table-body');
     if (!tableBody) return;
 
-    const searchInput = document.querySelector('input[type="search"]') || document.getElementById('search-input');
-    const roleFilter = document.getElementById('role-filter'); // تأكدي من وجود هذا الـ ID في الـ HTML للقائمة
-    const statusFilter = document.getElementById('status-filter'); // ✅ إضافة جديدة
-    const prevBtn = document.getElementById('prev-btn'); // زر السابق
-    const nextBtn = document.getElementById('next-btn'); // زر التالي
-    const pageInfo = document.getElementById('page-info'); // نص "Page 1 of 5"
-
     try {
-        // 1. جلب البيانات من السيرفر
+        // Show initial loading state if needed
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Loading users...</td></tr>';
+
+        // Fetch Data
         const response = await API.get('/api/admin/users');
+        allUsersData = response.users || response.data || (Array.isArray(response) ? response : []);
 
-        // فك تغليف البيانات (Unwrapping)
-        if (response.users && Array.isArray(response.users)) allUsersData = response.users;
-        else if (response.data && Array.isArray(response.data)) allUsersData = response.data;
-        else if (Array.isArray(response)) allUsersData = response;
-
-        // 🔍 طباعة البيانات لمعرفة اسم حقل الساعات الصحيح
-        console.log('👥 Users Data (Check for hours field):', allUsersData[0]);
-
-        // 2. تشغيل الجدول لأول مرة
+        // Initial Table Render
         renderUsersTable();
 
-        // 3. تفعيل البحث (Search)
-        if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                currentUsersPage = 1; // العودة للصفحة الأولى عند البحث
-                renderUsersTable();
-            });
-        }
+        // Attach Listeners for Search and Filters
+        setupFilterListeners();
 
-        // 4. تفعيل الفلترة (Filter by Role)
-        if (roleFilter) {
-            roleFilter.addEventListener('change', () => {
-                currentUsersPage = 1;
-                renderUsersTable();
-            });
-        }
-        // داخل loadUsersPage
-        if (statusFilter) {
-            statusFilter.addEventListener('change', () => {
-                currentUsersPage = 1;
-                renderUsersTable();
-            });
-        }
-
-        // 5. تفعيل أزرار التنقل (Pagination)
-        if (prevBtn) {
-            prevBtn.onclick = (e) => {
-                e.preventDefault();
-                if (currentUsersPage > 1) {
-                    currentUsersPage--;
-                    renderUsersTable();
-                }
-            };
-        }
-
-        if (nextBtn) {
-            nextBtn.onclick = (e) => {
-                e.preventDefault();
-                const totalPages = Math.ceil(getFilteredUsers().length / usersRowsPerPage);
-                if (currentUsersPage < totalPages) {
-                    currentUsersPage++;
-                    renderUsersTable();
-                }
-            };
-        }
+        // Attach Pagination Listeners
+        setupPaginationListeners();
 
     } catch (error) {
-        console.error('Error loading users:', error);
-        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load users.</td></tr>';
+        console.error('👥 Users Load Error:', error);
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load users. Please check connection.</td></tr>';
     }
 }
-
-// دالة مساعدة لفلترة البيانات واسترجاع النتائج المطلوبة فقط
+// ==========================================
+// 3. Filtering & Search Logic
+// ==========================================
 function getFilteredUsers() {
     const searchInput = document.getElementById('search-input');
     const roleFilter = document.getElementById('role-filter');
-    const statusFilter = document.getElementById('status-filter'); // ✅ إضافة جديدة
+    const statusFilter = document.getElementById('status-filter');
 
-    const searchText = searchInput ? searchInput.value.toLowerCase() : '';
+    const searchText = searchInput ? searchInput.value.toLowerCase().trim() : '';
     const selectedRole = roleFilter ? roleFilter.value.toLowerCase() : 'all';
-    const selectedStatus = statusFilter ? statusFilter.value.toLowerCase() : 'all'; // ✅ إضافة جديدة
+    const selectedStatus = statusFilter ? statusFilter.value.toLowerCase() : 'all';
 
     return allUsersData.filter(user => {
-        // 1. بحث بالاسم والايميل
         const name = (user.name || '').toLowerCase();
         const email = (user.email || '').toLowerCase();
-        const matchesSearch = name.includes(searchText) || email.includes(searchText);
-
-        // 2. فلترة الدور
         const role = (user.role_type || user.role || '').toLowerCase();
-        const matchesRole = (selectedRole === 'all') || (role === selectedRole);
-
-        // 3. فلترة الحالة ✅
         const status = (user.status || 'active').toLowerCase();
+
+        const matchesSearch = name.includes(searchText) || email.includes(searchText);
+        const matchesRole = (selectedRole === 'all') || (role === selectedRole);
         const matchesStatus = (selectedStatus === 'all') || (status === selectedStatus);
 
         return matchesSearch && matchesRole && matchesStatus;
     });
 }
 
-// دالة رسم الجدول (تستدعى عند كل تغيير)
+function setupFilterListeners() {
+    const filters = ['search-input', 'role-filter', 'status-filter'];
+    filters.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            // Use 'input' for search for real-time results, 'change' for selects
+            const eventType = el.tagName === 'SELECT' ? 'change' : 'input';
+            el.addEventListener(eventType, () => {
+                currentUsersPage = 1; // Reset to first page
+                renderUsersTable();
+            });
+        }
+    });
+}
+// ==========================================
+// 4. Rendering & Pagination
+// ==========================================
 function renderUsersTable() {
     const tableBody = document.getElementById('users-table-body');
-    const filteredData = getFilteredUsers(); // نجيب البيانات المفلترة
+    if (!tableBody) return;
 
-    // حساب التقطيع (Pagination Logic)
+    const filteredData = getFilteredUsers();
     const totalPages = Math.ceil(filteredData.length / usersRowsPerPage) || 1;
 
-    // تصحيح الصفحة الحالية إذا خرجت عن النطاق
+    // Safety check for current page
     if (currentUsersPage > totalPages) currentUsersPage = totalPages;
 
     const startIndex = (currentUsersPage - 1) * usersRowsPerPage;
-    const endIndex = startIndex + usersRowsPerPage;
-    const paginatedUsers = filteredData.slice(startIndex, endIndex);
+    const paginatedUsers = filteredData.slice(startIndex, startIndex + usersRowsPerPage);
 
-    // رسم الصفوف
-    tableBody.innerHTML = '';
-
+    // 1. Render Rows
     if (paginatedUsers.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No matching users found.</td></tr>';
     } else {
-        paginatedUsers.forEach(user => {
-            // محاولة التقاط الساعات بأسماء مختلفة
-            const hours = user.total_hours || user.hours_requested || user.charging_hours || user.usage || 0;
-
+        tableBody.innerHTML = paginatedUsers.map(user => {
             const status = user.status || 'Active';
-            const statusClass = (status.toLowerCase() === 'active') ? 'confirmed' : 'cancelled';
-            const role = user.role_type || user.role || 'User';
+            const statusClass = status.toLowerCase() === 'active' ? 'confirmed' : 'cancelled';
 
-            tableBody.innerHTML += `
+            return `
                 <tr id="user-row-${user.id}">
-                    <td>${Utils.escapeHTML(user.name || 'Unknown')}</td>
-                    <td>${Utils.escapeHTML(user.email || '-')}</td>
-                    <td><span class="badge bg-secondary">${role}</span></td>
-                    <td class="text-center">${hours}h</td> <td><span class="status ${statusClass}">${status}</span></td>
+                    <td>${Utils.escapeHTML(user.name)}</td>
+                    <td>${Utils.escapeHTML(user.email)}</td>
+                    <td><span class="badge bg-secondary">${user.role_type || 'User'}</span></td>
+                    <td class="text-center">${Utils.escapeHTML(user.department || '-')}</td>
+                    <td><span class="status ${statusClass}">${status}</span></td>
                     <td>
-                        <button class="btn btn-sm btn-danger-custom delete-user-btn" data-id="${user.id}">Delete</button>
+                        <a href="viewuser-profile.html?id=${user.id}" class="btn btn-sm btn-view-theme me-1" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button class="btn btn-sm btn-delete-action" onclick="handleDeleteUser(${user.id})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
-                </tr>`;
-        });
+                </tr>
+            `;
+        }).join('');
     }
 
+    // 2. Update Pagination UI
     const pageInfo = document.getElementById('page-info');
     if (pageInfo) pageInfo.innerText = `Page ${currentUsersPage} of ${totalPages}`;
 
-    // ✅ التصحيح: التعامل مع خاصية .disabled الحقيقية للزر
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    if (prevBtn) prevBtn.disabled = (currentUsersPage === 1);
+    if (nextBtn) nextBtn.disabled = (currentUsersPage >= totalPages);
+}
+
+function setupPaginationListeners() {
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
     if (prevBtn) {
-        // إذا كنا في الصفحة 1، نضع القفل (true)، غير ذلك نزيله (false)
-        prevBtn.disabled = (currentUsersPage === 1);
+        prevBtn.onclick = (e) => {
+            e.preventDefault();
+            if (currentUsersPage > 1) {
+                currentUsersPage--;
+                renderUsersTable();
+            }
+        };
     }
 
     if (nextBtn) {
-        // إذا وصلنا للصفحة الأخيرة، نضع القفل
-        nextBtn.disabled = (currentUsersPage >= totalPages);
+        nextBtn.onclick = (e) => {
+            e.preventDefault();
+            const totalPages = Math.ceil(getFilteredUsers().length / usersRowsPerPage);
+            if (currentUsersPage < totalPages) {
+                currentUsersPage++;
+                renderUsersTable();
+            }
+        };
+    }
+}
+// ==========================================
+// 5. User Actions (Delete & Profile)
+// ==========================================
+async function handleDeleteUser(userId) {
+    const confirmed = await Utils.confirmAction(
+        'Delete User?',
+        'This will permanently remove the user and their data.'
+    );
+
+    if (confirmed) {
+        try {
+            await API.delete(`/api/admin/users/${userId}`);
+
+            // Local state update (remove from array)
+            allUsersData = allUsersData.filter(u => u.id != userId);
+
+            // Refresh table
+            renderUsersTable();
+            Utils.showSuccess('Deleted!', 'User removed successfully.');
+        } catch (error) {
+            Utils.showError('Failed to delete user.');
+        }
+    }
+}
+
+async function loadUserProfilePage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id');
+
+    if (!userId) {
+        Utils.showError('No user selected.');
+        return;
     }
 
-    // إعادة تفعيل زر الحذف للصفوف الجديدة
-    setupDeleteButtons();
-}
+    try {
+        
+        const response = await API.get(`/api/admin/users`);
+        const usersList = response.users || response.data || response || [];
+        const userData = usersList.find(u => u.id == userId);
 
-function setupDeleteButtons() {
-    document.querySelectorAll('.delete-user-btn').forEach(btn => {
-        btn.addEventListener('click', async (e) => {
-            const userId = e.target.getAttribute('data-id');
-            const confirm = await Swal.fire({ title: 'Delete?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33' });
+        if (!userData) throw new Error('User not found.');
 
-            if (confirm.isConfirmed) {
-                try {
-                    await API.delete(`/api/admin/users/${userId}`);
-                    // نعيد تحميل الجدول لتحديث البيانات والأرقام
-                    const index = allUsersData.findIndex(u => u.id == userId);
-                    if (index > -1) allUsersData.splice(index, 1); // حذف محلياً للسرعة
-                    renderUsersTable();
-                    Swal.fire('Deleted!', '', 'success');
-                } catch (err) { Utils.showError('Failed to delete.'); }
-            }
-        });
-    });
+        // Map Data to UI
+        document.getElementById('profile-name').innerText = userData.name || 'N/A';
+        document.getElementById('profile-email').innerText = userData.email || '-';
+        document.getElementById('profile-role').innerText = userData.role_type || 'User';
+        document.getElementById('profile-job').innerText = userData.job_number || 'N/A';
+        document.getElementById('profile-phone').innerText = userData.phone || 'N/A';
+        document.getElementById('profile-joined').innerText = Utils.formatAmmanTime(userData.created_at);
+
+        // Limit hours logic
+        const limitEl = document.getElementById('profile-daily-limit');
+        if (limitEl) {
+            const limit = userData.daily_limit_hours;
+            limitEl.innerText = (limit === null || limit === undefined) ? 'Unlimited' : `${limit} Hours`;
+            if (!limit) limitEl.classList.add('text-success');
+        }
+
+        // Setup Delete button on profile
+        const delBtn = document.getElementById('delete-user-btn');
+        if (delBtn) delBtn.onclick = () => handleDeleteUser(userId);
+
+    } catch (error) {
+        console.error("❌ Profile Error:", error);
+        Utils.showError('Could not load user profile.');
+    }
 }
-// ==========================================
 // 3. Stations/Chargers Logic (Admin.json & Public.json)
-// // A. صفحة عرض الشواحن (الجدول + الفلترة)
-// ==========================================
 async function loadChargersPage() {
     const tableBody = document.getElementById('chargers-table-body');
-    const filterSelect = document.getElementById('charger-filter-status'); // القائمة التي أضفناها
+    const filterSelect = document.getElementById('charger-filter-status');
 
     if (!tableBody) return;
 
-    // متغير لتخزين جميع البيانات القادمة من السيرفر
     let allChargersData = [];
 
-    // دالة داخلية لرسم الجدول بناءً على داتا معينة
+    // Internal function to render the table rows dynamically
     const renderTable = (chargers) => {
         tableBody.innerHTML = '';
         if (chargers.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No chargers found.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No stations found.</td></tr>';
             return;
         }
 
         chargers.forEach(charger => {
             const name = charger.station_name || charger.name || 'Unnamed';
             const location = charger.location || 'Unknown';
-            // حساب الكبائن: نتأكد أنه رقم
+
+            // Calculate cabinets count
             let cabinetsCount = charger.total_cabinets;
             if (cabinetsCount === undefined && charger.cabinets) cabinetsCount = charger.cabinets.length;
             if (cabinetsCount === undefined) cabinetsCount = 0;
 
             const status = charger.status || 'unknown';
-
             let statusClass = 'confirmed';
             if (status.toLowerCase() === 'maintenance') statusClass = 'pending';
             if (status.toLowerCase() === 'offline') statusClass = 'cancelled';
@@ -422,34 +479,36 @@ async function loadChargersPage() {
                     <td>${cabinetsCount}</td>
                     <td><span class="status ${statusClass}">${status}</span></td>
                     <td>
-                        <a href="edit-charger.html?id=${charger.id}" class="btn btn-sm btn-secondary-custom">Edit</a>
+                        <div class="btn-group">
+                            <a href="edit-charger.html?id=${charger.id}" class="btn btn-sm btn-secondary-custom">Edit</a>
+                            <button onclick="deleteStation(${charger.id})" class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash-alt"></i> Delete
+                            </button>
+                        </div>
                     </td>
                 </tr>`;
         });
     };
 
     try {
-        // 1. جلب البيانات من السيرفر
+        // Fetch data from Admin Station API
         const response = await API.get('/api/stations');
 
-        // تخزين البيانات في المتغير
+        // Extract stations array from different possible response formats
         if (response.stations && Array.isArray(response.stations)) allChargersData = response.stations;
         else if (Array.isArray(response)) allChargersData = response;
         else if (response.data && Array.isArray(response.data)) allChargersData = response.data;
 
-        // 2. الرسم الأولي (عرض كل شيء)
+        // Initial render
         renderTable(allChargersData);
 
-        // 3. تفعيل الفلترة (عند تغيير القائمة)
+        // Status Filtering Logic
         if (filterSelect) {
             filterSelect.addEventListener('change', (e) => {
                 const selectedStatus = e.target.value.toLowerCase();
-
                 if (selectedStatus === 'all') {
-                    // إذا اختار الكل، نعرض البيانات الأصلية كاملة
                     renderTable(allChargersData);
                 } else {
-                    // نفلتر البيانات ونعرض النتيجة فقط
                     const filteredData = allChargersData.filter(charger =>
                         (charger.status || '').toLowerCase() === selectedStatus
                     );
@@ -459,770 +518,785 @@ async function loadChargersPage() {
         }
 
     } catch (error) {
-        console.error('Error:', error);
+        console.error('Error loading stations:', error);
         tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to load data.</td></tr>';
     }
 }
+// 1. Local State
+let allStationsData = [];
+/**
+ * Main initializer for the Chargers Page
+ */
+async function loadChargersPage() {
+    const tableBody = document.getElementById('chargers-table-body');
+    const filterSelect = document.getElementById('charger-filter-status');
 
-// ==========================================
-// 3. صفحة إضافة حجز جديد (المصححة والمضمونة)
-// ==========================================
-// async function setupAddBookingPage() {
-//     console.log("🚀 Setup Add Booking Page Started...");
+    if (!tableBody) return;
 
-//     const form = document.getElementById('add-booking-form');
-//     if (!form) return;
+    try {
+        // Show loading state
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading stations...</td></tr>';
 
-//     const userSelect = document.getElementById('booking-user');
-//     const stationSelect = document.getElementById('booking-station');
-//     const cabinetSelect = document.getElementById('booking-cabinet');
-//     const chargerSelect = document.getElementById('booking-charger');
+        // Fetching from Public/Admin endpoint
+        const response = await API.get('/api/stations');
 
-//     // سنخزن البيانات هنا
-//     let allStationsData = [];
+        // Data unwraping logic
+        allStationsData = response.stations || response.data || (Array.isArray(response) ? response : []);
 
-//     // 1. تعبئة المستخدمين
-//     try {
-//         const usersResp = await API.get('/api/admin/users');
-//         const users = usersResp.users || usersResp.data || usersResp;
-//         userSelect.innerHTML = '<option value="" disabled selected>Select User</option>';
-//         if (Array.isArray(users)) {
-//             users.forEach(u => userSelect.innerHTML += `<option value="${u.id}">${u.name} (${u.email})</option>`);
-//         }
-//     } catch (e) { console.error('Users Error:', e); }
+        // Initial Render
+        renderChargersTable(allStationsData);
 
-//     // 2. تعبئة المحطات
-//     try {
-//         const stationsResp = await API.get('/api/stations');
-//         console.log("📦 Full API Response:", stationsResp);
+        // Bind Filtering Event
+        if (filterSelect) {
+            filterSelect.addEventListener('change', (e) => {
+                const selected = e.target.value.toLowerCase();
+                const filtered = selected === 'all'
+                    ? allStationsData
+                    : allStationsData.filter(s => (s.status || '').toLowerCase() === selected);
+                renderChargersTable(filtered);
+            });
+        }
 
-//         // محاولة استخراج المصفوفة بذكاء
-//         if (Array.isArray(stationsResp)) allStationsData = stationsResp;
-//         else if (stationsResp.stations && Array.isArray(stationsResp.stations)) allStationsData = stationsResp.stations;
-//         else if (stationsResp.data && Array.isArray(stationsResp.data)) allStationsData = stationsResp.data;
+    } catch (error) {
+        console.error('❌ Stations Load Error:', error);
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Failed to connect to the server. Please try again.</td></tr>';
+    }
+}
+/**
+ * Renders the stations table with optimized DOM manipulation
+ */
+function renderChargersTable(stations) {
+    const tableBody = document.getElementById('chargers-table-body');
+    if (!tableBody) return;
 
-//         console.log("✅ Parsed Stations Data:", allStationsData);
-
-//         stationSelect.innerHTML = '<option value="" disabled selected>Select Station</option>';
-//         if (allStationsData.length > 0) {
-//             allStationsData.forEach(st => {
-//                 stationSelect.innerHTML += `<option value="${st.id}">${st.station_name || st.name || 'Station ' + st.id}</option>`;
-//             });
-//         }
-//     } catch (e) { console.error('Stations Error:', e); }
-
-//     // 3. عند اختيار المحطة
-//     stationSelect.addEventListener('change', function () {
-//         const selectedId = this.value; // هذا الرقم قد يكون نصاً "1"
-//         console.log("👉 Selected Station ID:", selectedId);
-
-//         // البحث الآمن (نحول الاثنين لنصوص لضمان المطابقة)
-//         const station = allStationsData.find(st => String(st.id) === String(selectedId));
-
-//         console.log("🔎 Found Station Object:", station);
-
-//         // إعادة ضبط القوائم
-//         cabinetSelect.innerHTML = '<option value="" disabled selected>Select Cabinet</option>';
-//         cabinetSelect.disabled = true;
-//         chargerSelect.innerHTML = '<option value="" disabled selected>Select Cabinet first</option>';
-//         chargerSelect.disabled = true;
-
-//         // التحقق: هل المحطة موجودة؟ وهل فيها كبائن؟
-//         if (station) {
-//             if (station.cabinets && Array.isArray(station.cabinets) && station.cabinets.length > 0) {
-//                 // ✅ الحالة السليمة: تفعيل القائمة
-//                 cabinetSelect.disabled = false;
-//                 station.cabinets.forEach(cab => {
-//                     cabinetSelect.innerHTML += `<option value="${cab.id}">Cabinet ${cab.cabinet_number || cab.id}</option>`;
-//                 });
-//             } else {
-//                 // ❌ الحالة الناقصة
-//                 console.warn("⚠️ Station found, but 'cabinets' array is empty or missing!", station);
-//                 // محاولة بديلة: ربما البيانات ليست متداخلة؟
-//                 cabinetSelect.innerHTML = '<option>No cabinets data found</option>';
-//             }
-//         } else {
-//             console.error("❌ Critical: Could not find station details in memory.");
-//         }
-//     });
-
-//     // 4. عند اختيار الكابينة
-//     cabinetSelect.addEventListener('change', function () {
-//         const stationId = stationSelect.value;
-//         const cabinetId = this.value;
-
-//         const station = allStationsData.find(st => String(st.id) === String(stationId));
-//         const cabinet = station ? station.cabinets.find(c => String(c.id) === String(cabinetId)) : null;
-
-//         chargerSelect.innerHTML = '<option value="" disabled selected>Select Charger</option>';
-//         chargerSelect.disabled = true;
-
-//         if (cabinet && cabinet.chargers && cabinet.chargers.length > 0) {
-//             chargerSelect.disabled = false;
-//             cabinet.chargers.forEach(ch => {
-//                 const status = ch.status ? `(${ch.status})` : '';
-//                 chargerSelect.innerHTML += `<option value="${ch.id}">Charger ${ch.charger_number || ch.id} ${status}</option>`;
-//             });
-//         } else {
-//             chargerSelect.innerHTML = '<option>No chargers available</option>';
-//         }
-//     });
-
-//     // 5. الحفظ
-//     form.addEventListener('submit', async (e) => {
-//         e.preventDefault();
-//         const btn = form.querySelector('input[type="submit"]');
-
-//         // التحقق من الحقول قبل الإرسال
-//         if (!userSelect.value || !stationSelect.value || !cabinetSelect.value || !chargerSelect.value) {
-//             Swal.fire('Missing Data', 'Please select all fields (User, Station, Cabinet, Charger)', 'warning');
-//             return;
-//         }
-
-//         const data = {
-//             user_id: userSelect.value,
-//             station_id: stationSelect.value,
-//             cabinet_id: cabinetSelect.value,
-//             charger_id: chargerSelect.value,
-//             start_time: `${document.getElementById('booking-date').value} ${document.getElementById('booking-start-time').value}:00`,
-//             end_time: `${document.getElementById('booking-date').value} ${document.getElementById('booking-end-time').value}:00`,
-//             status: document.getElementById('booking-status').value
-//         };
-
-//         try {
-//             if (btn) { btn.value = "Saving..."; btn.disabled = true; }
-//             await API.post('/api/admin/bookings', data);
-//             Swal.fire('Success', 'Booking Created!', 'success').then(() => window.location.href = 'bookings.html');
-//         } catch (err) {
-//             Swal.fire('Error', err.message || 'Failed to save', 'error');
-//         } finally {
-//             if (btn) { btn.value = "Save Booking"; btn.disabled = false; }
-//         }
-//     });
-// }
-// ==========================================
-// C. صفحة تعديل شاحن (Edit Page)
-// ==========================================
-async function setupEditChargerPage() {
-    // 1. جلب الـ ID من رابط الصفحة (URL)
-    const urlParams = new URLSearchParams(window.location.search);
-    const stationId = urlParams.get('id');
-
-    if (!stationId) {
-        Swal.fire('Error', 'No station ID provided', 'error').then(() => window.location.href = 'chargers.html');
+    if (stations.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No charging stations found.</td></tr>';
         return;
     }
 
+    tableBody.innerHTML = stations.map(station => {
+        const name = station.station_name || station.name || 'Unnamed';
+        const cabinets = station.total_cabinets || station.cabinets?.length || 0;
+
+        // Professional Status Badge logic
+        const status = (station.status || 'offline').toLowerCase();
+        let badgeClass = 'confirmed'; // Default Green
+        if (status === 'maintenance') badgeClass = 'pending'; // Orange
+        if (status === 'offline') badgeClass = 'cancelled'; // Red
+
+        return `
+            <tr>
+                <td><strong>#${station.id}</strong></td>
+                <td>${Utils.escapeHTML(name)}</td>
+                <td><i class="fas fa-map-marker-alt text-muted me-1"></i> ${Utils.escapeHTML(station.location || 'Unknown')}</td>
+                <td><span class="badge bg-dark">${cabinets} Units</span></td>
+                <td><span class="status ${badgeClass}">${status.toUpperCase()}</span></td>
+                <td>
+                    <div class="btn-group">
+                        <a href="edit-charger.html?id=${station.id}" class="btn btn-sm btn-view-theme me-1">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <button onclick="handleDeleteStation(${station.id})" class="btn btn-sm btn-delete-action">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+// ==========================================
+// 1. ADD STATION LOGIC
+// ==========================================
+async function setupAddChargerPage() {
+    const addForm = document.getElementById('add-charger-form');
+    if (!addForm) return;
+
+    addForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = addForm.querySelector('button[type="submit"]');
+
+        const formData = {
+            station_name: document.getElementById('charger-name').value.trim(),
+            station_code: document.getElementById('charger-code').value.trim(),
+            department: document.getElementById('charger-dept').value.trim(),
+            total_cabinets: parseInt(document.getElementById('cabinets').value) || 0,
+            location: document.getElementById('charger-location').value.trim(),
+            status: document.getElementById('charger-status').value
+        };
+
+        try {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+            }
+
+            // Path from Postman: /api/admin/stations/create
+            await API.post('/api/admin/stations/create', formData);
+
+            await Utils.showSuccess('Created!', 'Station created successfully.');
+            window.location.href = 'chargers.html';
+
+        } catch (error) {
+            console.error("❌ Add Error:", error);
+            Utils.showError(error.message);
+        } finally {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Save Charger';
+            }
+        }
+    });
+}
+// ==========================================
+// 2. EDIT STATION LOGIC 
+// ==========================================
+async function setupEditChargerPage() {
+    // Ensure the same ID exists in your HTML
+    const stationId = urlParams.get('id');
     const form = document.getElementById('edit-charger-form');
 
-    // 2. جلب بيانات الشاحن وتعبئة الفورم
+    if (!stationId || !form) return;
+        e.preventDefault(); // Prevent password from appearing in the URL
+    // A. Fetch Data
     try {
-        // الرابط: GET /api/stations/{id}
         const response = await API.get(`/api/stations/${stationId}`);
-        const station = response.station || response; // حسب شكل الداتا
 
-        document.getElementById('charger-name').value = station.station_name || station.name;
-        document.getElementById('cabinets').value = station.total_cabinets || 0;
-        document.getElementById('charger-location').value = station.location;
-        document.getElementById('charger-status').value = station.status;
+            // Match the backend field name (per Postman)
+        const station = response.station || response.data || response;
 
+        if (station) {
+        // Check password confirmation
+            document.getElementById('charger-name').value = station.station_name || '';
+            document.getElementById('cabinets').value = station.total_cabinets || 0;
+            document.getElementById('charger-location').value = station.location || '';
+            document.getElementById('charger-status').value = (station.status || 'active').toLowerCase();
+
+            // Store station_code to send it back in update
+            // Avoid errors when Utils.showLoading is unavailable
+        }
     } catch (error) {
-        console.error(error);
-        Utils.showError('Failed to fetch station details');
+            // Send request to the server using the documented route
+        Utils.showError("Could not load correct station data.");
     }
 
-    // 3. حفظ التعديلات
+            passwordForm.reset(); // Clear inputs
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = form.querySelector('input[type="submit"]');
 
         const updateData = {
-            station_name: document.getElementById('charger-name').value,
+            station_name: document.getElementById('charger-name').value.trim(),
             total_cabinets: parseInt(document.getElementById('cabinets').value) || 0,
-            location: document.getElementById('charger-location').value,
+            location: document.getElementById('charger-location').value.trim(),
             status: document.getElementById('charger-status').value,
-
-            // الحقول الناقصة نرسلها كما هي لتجنب المشاكل
-            department: 'Updated Dept',
-            station_code: stationId.toString()
+            station_code: form.dataset.stationCode || stationId, // From dataset
+            department: "Updated Dept"
         };
 
         try {
-            Utils.setLoading(submitBtn, true);
-            // الرابط: PUT /api/admin/stations/{id}
+            if (submitBtn) submitBtn.value = "Updating...";
+
+            // Correct API Call
             await API.put(`/api/admin/stations/${stationId}`, updateData);
 
-            Utils.showSuccess('Updated', 'Charger updated successfully!')
-                .then(() => {
-                    window.location.href = 'chargers.html';
-                });
+            await Utils.showSuccess('Updated!', 'Station details updated.');
+            window.location.href = 'chargers.html';
         } catch (error) {
-            Utils.showError(error.message || 'Failed to update charger');
+            console.error("❌ Update Error:", error);
+            Utils.showError(error.message);
         } finally {
-            Utils.setLoading(submitBtn, false, 'Update Charger');
+            if (submitBtn) submitBtn.value = "Update Charger";
         }
     });
 }
-// assets/js/app.js
-
-function setupAddChargerPage() {
-    const form = document.getElementById('add-charger-form');
-    if (!form) return;
-
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        // تعديل 1: تحديد الزر بشكل أدق (لأننا غيرنا الـ HTML ليستخدم button)
-        const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('.btn-submit-custom');
-
-        // تعديل 2: توليد رمز المحطة تلقائياً بدلاً من طلبه من المستخدم
-        const autoGeneratedCode = 'ST-' + Math.floor(1000 + Math.random() * 9000);
-
-        const payload = {
-            station_name: document.getElementById('charger-name').value,
-            station_code: autoGeneratedCode, // إرسال الكود المولد تلقائياً
-            location: document.getElementById('charger-location').value,
-            total_cabinets: document.getElementById('cabinets').value,
-            status: document.getElementById('charger-status').value,
-            // التأكد من وجود قيمة للقسم أو إرسال قيمة افتراضية
-            department: document.getElementById('charger-dept') ? document.getElementById('charger-dept').value : 'General'
-            
-        };
-
-        try {
-            Utils.setLoading(submitBtn, true);
-
-            // تم اعتماد المسار الصحيح مع /api
-            await API.post('/api/admin/stations/create', payload);
-
-            // عرض الكود المولد في رسالة النجاح
-            Utils.showSuccess('Created!', `Station added with Code: ${autoGeneratedCode}`)
-                .then(() => {
-                    window.location.href = 'chargers.html';
-                });
-
-        } catch (error) {
-            Utils.showError(error.message || 'Failed to add station');
-        } finally {
-            Utils.setLoading(submitBtn, false, 'Save Charger');
-        }
-    });
-}
-// ==========================================
-// 4. Notification Logic (Admin.json)
-// ==========================================
 /**
- * منطق صفحة الإشعارات
- * يربط بين اختيار الجمهور المستهدف وجلب قائمة المستخدمين
+ * Handles station deletion with confirmation
  */
-async function setupNotificationPage() {
-    const form = document.getElementById('compose-notification-form');
-    const specificDiv = document.getElementById('specific-user-div');
-    const usersContainer = document.getElementById('users-list-container');
-    const audienceRadios = document.querySelectorAll('input[name="audience"]');
+window.handleDeleteStation = async function (id) {
+    const confirmed = await Utils.confirmAction(
+        'Delete Station?',
+        'Warning: This will remove the station and all associated cabinets.'
+    );
 
-    if (!form) return;
-
-    // 1. التحكم في ظهور قائمة اختيار المستخدمين
-    audienceRadios.forEach(radio => {
-        radio.addEventListener('change', async (e) => {
-            if (e.target.value === 'specific') {
-                specificDiv.style.display = 'block';
-                await loadUsersForNotifications(); // جلب المستخدمين عند الطلب
-            } else {
-                specificDiv.style.display = 'none';
-            }
-        });
-    });
-
-    // 2. دالة جلب المستخدمين وحقنهم في القائمة
-    async function loadUsersForNotifications() {
+    if (confirmed) {
         try {
-            usersContainer.innerHTML = '<p class="text-muted small p-2">Loading users...</p>';
-            const response = await API.get('/api/admin/users');
-            const users = response.users || response.data || response;
+            await API.delete(`/api/admin/stations/${id}`);
+            Utils.showSuccess('Deleted!', 'Station removed successfully.');
 
-            if (users.length === 0) {
-                usersContainer.innerHTML = '<p class="text-danger small p-2">No users found.</p>';
-                return;
-            }
-
-            // توليد الـ HTML للمستخدمين مع تنظيف البيانات
-            usersContainer.innerHTML = users.map(user => `
-                <div class="form-check mb-2">
-                    <input class="form-check-input user-checkbox" type="checkbox" value="${user.id}" id="user-${user.id}">
-                    <label class="form-check-label text-white small" for="user-${user.id}">
-                        ${Utils.escapeHTML(user.name)} <span class="text-muted">(${Utils.escapeHTML(user.email)})</span>
-                    </label>
-                </div>
-            `).join('');
+            // Local state update & re-render
+            allStationsData = allStationsData.filter(s => s.id != id);
+            renderChargersTable(allStationsData);
         } catch (error) {
-            usersContainer.innerHTML = '<p class="text-danger small p-2">Failed to load users.</p>';
+            Utils.showError(error.message || 'Could not delete station.');
         }
     }
-
-    // 3. معالجة إرسال النموذج
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const submitBtn = form.querySelector('button[type="submit"]');
-        const title = document.getElementById('notif-title').value;
-        const message = document.getElementById('notif-message').value;
-        const audience = document.querySelector('input[name="audience"]:checked').value;
-
-        // جمع الـ IDs المختارة في حال كان الجمهور محدداً
-        const selectedUserIds = Array.from(document.querySelectorAll('.user-checkbox:checked'))
-                                     .map(cb => cb.value);
-
-        if (!title || !message) {
-            Utils.showError('Please fill in both title and message.');
-            return;
-        }
-
-        if (audience === 'specific' && selectedUserIds.length === 0) {
-            Utils.showError('Please select at least one recipient.');
-            return;
-        }
-
-        try {
-            Utils.setLoading(submitBtn, true);
-
-            // Payload بناءً على Admin.json
-            const payload = {
-                title: title,
-                message: message,
-                type: 'warning', 
-                target: audience,
-                user_ids: audience === 'specific' ? selectedUserIds : null
-            };
-
-            await API.post('/api/admin/notifications/send', payload);
-            
-            Utils.showSuccess('Sent!', 'Notification has been sent successfully.');
-            form.reset();
-            specificDiv.style.display = 'none';
-        } catch (error) {
-            Utils.showError(error.message || 'Failed to send notification');
-        } finally {
-            Utils.setLoading(submitBtn, false, 'Send Notification');
-        }
+};
+async function deleteStation(stationId) {
+    const result = await Swal.fire({
+        title: 'Delete Station?',
+        text: "Warning: This will delete the station and all its chargers permanently!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        confirmButtonText: 'Yes, Delete Everything'
     });
+
+    if (result.isConfirmed) {
+        try {
+            // This calls the destroy($id) method in AdminStationController
+            await API.delete(`/api/admin/stations/${stationId}`);
+
+            await Swal.fire('Deleted!', 'Station has been removed.', 'success');
+            loadStations(); // Refresh your stations list
+        } catch (error) {
+            Swal.fire('Error', 'Could not delete station. Check if it has active bookings.', 'error');
+        }
+    }
 }
 // ==========================================
-// BOOKINGS PAGE LOGIC
-// ==========================================
+// 4. Bookings Logic
+// Returns the status badge using the unified CSS classes (.status .active|confirmed|completed|pending|cancelled)
+function getStatusBadge(status) {
+    const s = (status || '').toLowerCase();
+    let cls = 'pending';
+    let icon = 'fa-clock';
+
+    if (["active", "confirmed", "completed"].includes(s)) {
+        cls = 'confirmed';
+        icon = s === 'active' ? 'fa-play' : 'fa-check-circle';
+    } else if (s === 'cancelled') {
+        cls = 'cancelled';
+        icon = 'fa-times-circle';
+    } else {
+        cls = 'pending';
+        icon = 'fa-clock';
+    }
+
+    return `<span class="status ${cls}"><i class="fas ${icon} me-1"></i>${status}</span>`;
+}
 async function loadBookingsPage() {
     const tableBody = document.getElementById('bookings-table-body');
-    const filterSelect = document.getElementById('booking-filter-status');
-
+    const statusFilter = document.getElementById('status-filter'); // Filter element in HTML
     if (!tableBody) return;
 
-    // متغير لتخزين البيانات الأصلية للفلترة
-    let allBookings = [];
+    try {
+        // 1. Fetch data from the server
+        const response = await API.get('/api/admin/bookings');
+        let bookings = response.bookings || response.data || [];
 
-    // دالة رسم الجدول
-    const renderTable = (bookings) => {
+        // 2. Read the current filter value (lowercase for consistency)
+        const selectedStatus = statusFilter ? statusFilter.value.toLowerCase() : 'all';
+
+        // 3. Apply filtering when the option is not "All"
+        if (selectedStatus !== 'all') {
+            bookings = bookings.filter(booking => 
+                (booking.status || '').toLowerCase() === selectedStatus
+            );
+        }
+
+        // 4. Clear current table content before re-rendering
         tableBody.innerHTML = '';
+
+        // 5. Handle empty data after filtering
         if (bookings.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No bookings found.</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-muted p-4">No ${selectedStatus !== 'all' ? selectedStatus : ''} bookings found.</td></tr>`;
             return;
         }
 
+        // 6. Render rows in the table
         bookings.forEach(booking => {
-            // 1. استخراج اسم المستخدم (مع حماية من القيم الفارغة)
-            const userName = booking.user ? booking.user.name : 'Unknown User';
+            const stationName = booking.station?.station_name || booking.station_name || 'IT';
+            const statusHtml = getStatusBadge(booking.status); // Color helper prepared earlier
+            const duration = booking.duration || booking.duration_minutes || 0;
 
-            // 2. استخراج اسم المحطة (استخدمنا الاسم لأنه أوضح من الـ ID)
-            const stationName = booking.station ? booking.station.station_name : 'Unknown Station';
-
-            // 3. تنسيق التاريخ والوقت
-            const startDate = new Date(booking.start_time);
-            const dateStr = startDate.toLocaleDateString('en-GB');
-            const timeStr = startDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-
-            // 4. تنسيق الحالة والألوان
-            const status = booking.status || 'unknown';
-            let statusClass = 'pending'; // أصفر افتراضياً
-
-            if (status.toLowerCase() === 'completed') statusClass = 'confirmed'; // أخضر
-            if (status.toLowerCase() === 'confirmed') statusClass = 'confirmed'; // أخضر
-            if (status.toLowerCase() === 'active') statusClass = 'confirmed'; // أخضر
-            if (status.toLowerCase() === 'cancelled') statusClass = 'cancelled'; // أحمر
-
-            tableBody.innerHTML += `
-                <tr>
-                    <td>${Utils.escapeHTML(userName)}</td>
-                    <td>${Utils.escapeHTML(stationName)}</td>
-                    <td>${dateStr} <small class="text-muted ms-1">${timeStr}</small></td>
-                    <td><span class="status ${statusClass}">${status}</span></td>
+            const row = `
+                <tr class="align-middle">
                     <td>
-                      <a href="view-booking.html?id=${booking.id}" class="btn btn-sm btn-secondary-custom">Details</a>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-2 bg-secondary rounded-circle text-center" style="width:28px; height:28px; line-height:28px;">
+                                <i class="fas fa-user text-white" style="font-size: 11px;"></i>
+                            </div>
+                            <span class="text-white">${Utils.escapeHTML(booking.user?.name || 'User')}</span>
+                        </div>
                     </td>
-                </tr>`;
+
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-charging-station me-2 text-info"></i>
+                            <span class="text-white">${Utils.escapeHTML(stationName)}</span>
+                        </div>
+                    </td>
+
+                    <td class="text-secondary small">
+                        ${Utils.formatAmmanTime(booking.start_time)}
+                    </td>
+
+                    <td>
+                        <div class="d-flex align-items-center text-white-50">
+                            <i class="far fa-clock me-2"></i>
+                            <span>${duration} min</span>
+                        </div>
+                    </td>
+
+                    <td>${statusHtml}</td>
+
+                    <td>
+                        <div class="d-flex gap-2 justify-content-start">
+                            <a href="view-booking.html?id=${booking.id}" class="btn-view-action" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button onclick="deleteBooking(${booking.id})" class="btn-delete-action" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            tableBody.insertAdjacentHTML('beforeend', row);
         });
-    };
-
-    try {
-        // جلب البيانات من السيرفر
-        const response = await API.get('/api/admin/bookings');
-
-        // التعامل مع شكل البيانات (حسب الصورة التي أرسلتِها: response.bookings هو المصفوفة)
-        if (response.bookings && Array.isArray(response.bookings)) {
-            allBookings = response.bookings;
-        } else if (Array.isArray(response)) {
-            allBookings = response;
-        } else if (response.data) {
-            allBookings = response.data;
-        }
-
-        // رسم الجدول لأول مرة
-        renderTable(allBookings);
-
-        // تفعيل الفلترة (Filter)
-        if (filterSelect) {
-            filterSelect.addEventListener('change', (e) => {
-                const selectedStatus = e.target.value.toLowerCase();
-
-                if (selectedStatus === 'all') {
-                    renderTable(allBookings);
-                } else {
-                    const filtered = allBookings.filter(b =>
-                        (b.status || '').toLowerCase() === selectedStatus
-                    );
-                    renderTable(filtered);
-                }
-            });
-        }
-
     } catch (error) {
-        console.error('Error loading bookings:', error);
-        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load bookings.</td></tr>';
+        console.error("❌ Rendering Error:", error);
+        tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger p-4">Error loading data.</td></tr>';
     }
 }
-// ==========================================
-// 3. صفحة إضافة حجز جديد (Logic for add-new-booking.html)
-// ==========================================
-async function setupAddBookingPage() {
-    const form = document.getElementById('add-booking-form');
-    if (!form) return;
 
-    const userSelect = document.getElementById('booking-user');
-    const stationSelect = document.getElementById('booking-station');
-
-    // 1. تعبئة قائمة المستخدمين
-    try {
-        const usersResp = await API.get('/api/admin/users');
-        const users = usersResp.users || usersResp.data || usersResp;
-
-        userSelect.innerHTML = '<option value="" disabled selected>Select User</option>';
-        users.forEach(u => {
-            userSelect.innerHTML += `<option value="${u.id}">${u.name} (${u.email})</option>`;
-        });
-    } catch (e) { console.error('Failed to load users', e); }
-
-    // 2. تعبئة قائمة المحطات
-    try {
-        const stationsResp = await API.get('/api/stations');
-        const stations = stationsResp.stations || stationsResp.data || stationsResp;
-
-        stationSelect.innerHTML = '<option value="" disabled selected>Select Station</option>';
-        stations.forEach(s => {
-            const name = s.station_name || s.name || 'Station ' + s.id;
-            stationSelect.innerHTML += `<option value="${s.id}">${name}</option>`;
-        });
-    } catch (e) { console.error('Failed to load stations', e); }
-
-    // 3. عند الحفظ
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = form.querySelector('input[type="submit"]');
-
-        // تجميع البيانات
-        const dateVal = document.getElementById('booking-date').value;
-        const startTimeVal = document.getElementById('booking-start-time').value;
-        const endTimeVal = document.getElementById('booking-end-time').value;
-
-        // دمج التاريخ مع الوقت لعمل Timestamp كامل (Y-m-d H:i:s)
-        const startDateTime = `${dateVal} ${startTimeVal}:00`;
-        const endDateTime = `${dateVal} ${endTimeVal}:00`;
-
-        const data = {
-            user_id: userSelect.value,
-            station_id: stationSelect.value,
-            start_time: startDateTime,
-            end_time: endDateTime,
-            status: document.getElementById('booking-status').value
-        };
-
-        try {
-            Utils.setLoading(btn, true);
-            await API.post('/api/admin/bookings', data); // تأكدي من الرابط الصحيح في Postman
-
-            Swal.fire('Success', 'Booking created successfully!', 'success')
-                .then(() => window.location.href = 'bookings.html');
-        } catch (error) {
-            Utils.showError(error.message || 'Failed to create booking');
-        } finally {
-            Utils.setLoading(btn, false, 'Save Booking');
-        }
-    });
-}
-// دالة (وهمية حالياً) لعرض التفاصيل - يمكن برمجتها لاحقاً لفتح مودال
-// ==========================================
-// 4. صفحة تفاصيل الحجز (Logic for view-booking.html)
-// ==========================================
+/**
+ * Setup filter listener on page load
+ */
+document.addEventListener('DOMContentLoaded', () => {
+    const statusFilter = document.getElementById('status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', loadBookingsPage);
+    }
+    
+    // Run once on load
+    loadBookingsPage();
+});
 async function setupBookingDetailsPage() {
     const detailIdEl = document.getElementById('detail-id');
-    if (!detailIdEl) return; // لسنا في صفحة التفاصيل
+    if (!detailIdEl) return;
 
-    // جلب الـ ID من الرابط (view-booking.html?id=5)
+    // 1. Extract booking ID from the URL
     const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get('id');
+    const bookingId = urlParams.get('id');
 
-    if (!id) {
-        window.location.href = 'bookings.html';
+    if (!bookingId) {
+        Utils.showError('No booking ID provided.');
         return;
     }
 
     try {
-        // بما أننا لا نملك endpoint لجلب حجز واحد، سنجلب الكل ونبحث
+        console.log(`📡 Fetching details for Booking #${bookingId}...`);
+
+        // 2. Fetch all bookings and locate the target
+        // Prefer a single-booking endpoint (/api/admin/bookings/{id}) if available
         const response = await API.get('/api/admin/bookings');
-        let bookings = response.bookings || response.data || response;
+        const bookings = response.bookings || response.data || response;
+        const booking = Array.isArray(bookings) ? bookings.find(b => b.id == bookingId) : bookings;
 
-        const booking = bookings.find(b => b.id == id);
+        if (!booking) throw new Error('Booking record not found on server.');
 
-        if (!booking) {
-            throw new Error('Booking not found');
-        }
-
-        // تعبئة البيانات في الـ HTML
+        // 3. Populate primary fields
         detailIdEl.innerText = booking.id;
+        document.getElementById('detail-user').innerText = Utils.escapeHTML(booking.user?.name || 'Unknown');
+        
+        // Show station name and number
+        const stationName = booking.station?.station_name || 'Unknown Station';
+        document.getElementById('detail-station').innerText = `${Utils.escapeHTML(stationName)}`;
 
-        // الحالة واللون
-        const statusEl = document.getElementById('detail-status');
-        const status = booking.status || 'Unknown';
-        statusEl.innerText = status;
-        statusEl.className = 'status'; // reset
-        if (status.toLowerCase() === 'confirmed' || status.toLowerCase() === 'completed') statusEl.classList.add('confirmed');
-        else if (status.toLowerCase() === 'cancelled') statusEl.classList.add('cancelled');
-        else statusEl.classList.add('pending');
+        // Show start time (Amman time)
+        document.getElementById('detail-date-time').innerText = Utils.formatAmmanTime(booking.start_time);
 
-        // المستخدم والمحطة
-        const userName = booking.user ? booking.user.name : 'Unknown';
-        const userEmail = booking.user ? booking.user.email : '';
-        document.getElementById('detail-user').innerText = `${userName} (${userEmail})`;
+        // ---------------------------------------------------------
+        // Smart duration logic
+        // ---------------------------------------------------------
+        const plannedDuration = booking.duration || booking.duration_minutes || 0;
+        const status = (booking.status || '').toLowerCase();
+        const durationEl = document.getElementById('detail-duration');
 
-        const stationName = booking.station ? booking.station.station_name : 'Unknown Station';
-        document.getElementById('detail-station').innerText = stationName;
+        let durationHtml = `${plannedDuration} Minutes`; // Default
 
-        // التواريخ والمدة
-        const start = new Date(booking.start_time);
-        const end = new Date(booking.end_time);
-        const dateStr = start.toLocaleDateString('en-GB');
-        const timeFrom = start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const timeTo = end.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        // Calculate actual duration only when the booking ended or was cancelled
+        if (status === 'cancelled' || status === 'completed') {
+            const startTime = new Date(booking.start_time);
+            // Use updated_at as the action timestamp (cancel/complete)
+            const endTime = new Date(booking.updated_at); 
 
-        document.getElementById('detail-date-time').innerText = `${dateStr}, ${timeFrom} - ${timeTo}`;
+            let actualMinutes = 0;
 
-        // حساب المدة (إذا لم تأت من السيرفر)
-        const duration = booking.duration || Math.round((end - start) / 60000);
-        document.getElementById('detail-duration').innerText = `${duration} mins`;
-
-        // زر الإلغاء
-        const cancelBtn = document.getElementById('btn-cancel-booking');
-        if (status.toLowerCase() !== 'cancelled' && status.toLowerCase() !== 'completed') {
-            cancelBtn.style.display = 'inline-block';
-            cancelBtn.onclick = async () => {
-                const confirm = await Swal.fire({ title: 'Cancel Booking?', icon: 'warning', showCancelButton: true });
-                if (confirm.isConfirmed) {
-                    try {
-                        // طلب الإلغاء (تأكدي من الرابط في Postman)
-                        // قد يكون DELETE أو PUT لتحديث الحالة
-                        // فرضاً سنستخدم PUT لتحديث الحالة
-                        await API.put(`/api/admin/bookings/${id}`, { status: 'cancelled' });
-                        // أو await API.delete(`/api/admin/bookings/${id}`);
-
-                        Swal.fire('Cancelled', '', 'success').then(() => location.reload());
-                    } catch (e) { Utils.showError('Failed to cancel'); }
+            if (!isNaN(startTime) && !isNaN(endTime)) {
+                // Case 1: Cancelled before start time
+                if (endTime < startTime) {
+                    actualMinutes = 0;
+                } 
+                // Case 2: Cancelled after start time—calculate difference
+                else {
+                    const diffMs = endTime - startTime;
+                    actualMinutes = Math.floor(diffMs / 60000); // Convert to minutes
                 }
-            };
+            }
+
+            // Display the actual duration (yellow) plus booked duration (gray)
+            durationHtml = `
+                <span class="text-warning fw-bold" style="font-size: 1.1em;">${actualMinutes} Mins (Actual)</span>
+                <span class="text-muted small ms-1"> / ${plannedDuration} Mins (Booked)</span>
+            `;
         }
+        
+        // Apply HTML
+        durationEl.innerHTML = durationHtml;
+        // ---------------------------------------------------------
+
+        // Update status badge
+        const statusEl = document.getElementById('detail-status');
+        if (statusEl) {
+            statusEl.innerHTML = getStatusBadge(booking.status);
+        }
+
+        // 4. Configure action buttons (show/hide based on status)
+        setupBookingActions(booking);
 
     } catch (error) {
-        console.error(error);
-        Swal.fire('Error', 'Could not load booking details', 'error')
-            .then(() => window.location.href = 'bookings.html');
+        console.error("❌ Booking Detail Load Error:", error);
+        Utils.showError('Failed to load booking details.');
     }
 }
-async function loadSupportPage() {
-    const tableBody = document.getElementById('support-table-body');
-    const filterSelect = document.getElementById('support-filter-status');
 
+function setupBookingActions(booking) {
+    const cancelBtn = document.getElementById('btn-cancel-booking');
+    const completeBtn = document.getElementById('btn-complete-booking');
+
+    if (!cancelBtn || !completeBtn) return;
+
+    const status = (booking.status || '').toLowerCase();
+
+    // Hide buttons by default
+    cancelBtn.style.display = 'none';
+    completeBtn.style.display = 'none';
+
+    // Show only when the booking is active or pending
+    if (['pending', 'confirmed', 'active'].includes(status)) {
+        cancelBtn.style.display = 'inline-block';
+        completeBtn.style.display = 'inline-block';
+
+        // Bind actions
+        cancelBtn.onclick = () => updateBookingStatus(booking.id, 'cancelled');
+        completeBtn.onclick = () => updateBookingStatus(booking.id, 'completed');
+    }
+}
+
+async function updateBookingStatus(id, newStatus) {
+    if (!confirm(`Are you sure you want to mark this booking as ${newStatus}?`)) return;
+
+    try {
+        Utils.showLoading('Updating...');
+        // Verify the correct API route (bookings/{id} or dedicated endpoint)
+        // Using a generic update path as an example
+        await API.put(`/api/admin/bookings/${id}/cancel`, { status: newStatus }); 
+        // Or if you have a unified endpoint: await API.put(`/api/admin/bookings/${id}`, { status: newStatus });
+
+        Utils.showSuccess('Updated', `Booking marked as ${newStatus}`);
+
+        // Reload to refresh counts and status
+        setTimeout(() => location.reload(), 1000);
+    } catch (error) {
+        console.error(error);
+        Utils.showError('Failed to update status');
+    }
+}
+function setupBookingActions(booking) {
+    const cancelBtn = document.getElementById('btn-cancel-booking');
+    const completeBtn = document.getElementById('btn-complete-booking');
+
+    // Ensure these IDs exist in view-booking.html
+    if (!cancelBtn || !completeBtn) return;
+
+    const status = (booking.status || '').toLowerCase();
+
+    // Hide buttons first
+    cancelBtn.style.display = 'none';
+    completeBtn.style.display = 'none';
+
+    // Show only when the booking is editable
+    if (['pending', 'confirmed', 'active'].includes(status)) {
+        cancelBtn.style.display = 'inline-block';
+        completeBtn.style.display = 'inline-block';
+
+        cancelBtn.onclick = () => handleStatusUpdate(booking.id, 'cancelled');
+        completeBtn.onclick = () => handleStatusUpdate(booking.id, 'completed');
+    }
+}
+
+/**
+ * Sends status update request to server
+ */
+async function handleStatusUpdate(id, newStatus) {
+    const actionText = newStatus === 'cancelled' ? 'Cancel' : 'Complete';
+    const confirmed = await Utils.confirmAction(
+        `${actionText} Booking?`,
+        `Are you sure you want to mark this booking as ${newStatus}?`
+    );
+
+    if (confirmed) {
+        try {
+            // Choose the correct route based on the target status
+            // Ensure the complete route exists in api.php
+            const endpoint = newStatus === 'cancelled' 
+                ? `/api/admin/bookings/${id}/cancel` 
+                : `/api/admin/bookings/${id}/complete`; 
+
+            await API.put(endpoint, { status: newStatus });
+
+            await Utils.showSuccess('Updated!', `Booking is now ${newStatus}.`);
+            
+            // Refresh data on the page
+            if (typeof setupBookingDetailsPage === 'function') {
+                setupBookingDetailsPage();
+            }
+        } catch (error) {
+            Utils.showError('Update failed. Please check if the route exists on the server.');
+        }
+    }
+}
+// 3. Main: Station Schedule Timeline (The most critical part for Amman Time)
+async function loadStationSchedule(stationId) {
+    const scheduleContainer = document.getElementById('schedule-timeline');
+    if (!scheduleContainer) return;
+
+    try {
+        // Request availability instead of schedule; send date and requested duration as params
+        const date = document.getElementById('booking-date')?.value || new Date().toISOString().split('T')[0];
+        const duration = document.getElementById('booking-duration')?.value || 60;
+
+        const response = await API.get(`/api/admin/stations/${stationId}/availability`, {
+            params: { date, duration }
+        });
+
+        // Read the correct array from the response
+        const chargers = response.chargers || [];
+        let allAvailableSlots = [];
+        
+        chargers.forEach(charger => {
+            charger.available_slots.forEach(slot => {
+                allAvailableSlots.push({ ...slot, charger_id: charger.charger_id });
+            });
+        });
+
+        if (allAvailableSlots.length === 0) {
+            scheduleContainer.innerHTML = '<div class="text-center p-3 text-muted">No free slots for the selected duration.</div>';
+            return;
+        }
+
+        // Render free slot cards
+        scheduleContainer.innerHTML = allAvailableSlots.map(slot => `
+            <div class="d-flex justify-content-between align-items-center p-3 mb-2 border rounded bg-dark shadow-sm" 
+                 style="border-left: 5px solid #2ecc71 !important; cursor: pointer;"
+                 onclick="selectBookingSlot('${slot.start}', ${slot.charger_id})">
+                <div class="text-white">
+                    <small class="d-block text-muted mb-1">Available Slot</small>
+                    <i class="far fa-clock me-2 text-success"></i> 
+                    <strong style="font-size: 0.9rem;">${Utils.formatAmmanTime(slot.start)}</strong>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-success mb-1">FREE</span>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error("❌ Schedule Sync Error:", error);
+        scheduleContainer.innerHTML = '<div class="text-danger text-center">Error synchronizing timeline.</div>';
+    }
+}
+function displaySlots(slots) {
+    const container = document.getElementById('slots-container');
+    container.innerHTML = ''; // Clear container
+
+    if (slots.length === 0) {
+        container.innerHTML = '<p class="text-muted">No available time slots for today.</p>';
+        return;
+    }
+
+    // Build a small grid
+    const grid = document.createElement('div');
+    grid.className = 'd-flex flex-wrap gap-2 mt-3'; // Use Bootstrap flex helpers
+
+    slots.forEach((slot, index) => {
+        // Format time for display (e.g., 08:00 AM)
+        const startTime = new Date(slot.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        const slotBtn = document.createElement('div');
+        slotBtn.className = 'slot-item p-2 border rounded text-center cursor-pointer';
+        slotBtn.style.minWidth = '100px';
+        slotBtn.style.cursor = 'pointer';
+        slotBtn.innerHTML = `<span>${startTime}</span>`;
+
+        // On slot click
+        slotBtn.onclick = function() {
+            selectSlot(slot, slotBtn);
+        };
+
+        grid.appendChild(slotBtn);
+    });
+
+    container.appendChild(grid);
+}
+
+// Handle slot selection
+function selectSlot(slot, element) {
+    // 1. Remove selection classes from all other slots
+    document.querySelectorAll('.slot-item').forEach(el => {
+        el.classList.remove('bg-primary', 'text-white', 'selected-slot');
+        el.classList.add('bg-light');
+    });
+
+    // 2. Highlight the selected slot
+    element.classList.add('bg-primary', 'text-white', 'selected-slot');
+    element.classList.remove('bg-light');
+
+    // 3. Fill the inputs (ensure matching IDs exist in the HTML)
+    // Note: datetime-local inputs need proper formatting
+    if(document.getElementById('start_time')) {
+        document.getElementById('start_time').value = slot.start.replace(':00+00:00', ''); 
+    }
+    
+    // Optionally store the selected slot globally for later use
+    window.selectedBookingSlot = slot;
+    
+    console.log("Selected Slot:", slot);
+}
+
+// 4. Action: Delete Booking
+async function deleteBooking(bookingId) {
+    const confirmed = await Utils.confirmAction(
+        'Delete Booking Record?',
+        'Admin action: This record will be permanently purged from the system.'
+    );
+
+    if (confirmed) {
+        try {
+            await API.delete(`/api/admin/bookings/${bookingId}`);
+            await Utils.showSuccess('Deleted!', 'Record successfully removed.');
+            loadBookingsPage();
+        } catch (error) {
+            Utils.showError('Deletion failed. Verify backend route mappings.');
+        }
+    }
+}
+
+// Global Exports
+window.loadStationSchedule = loadStationSchedule;
+window.deleteBooking = deleteBooking;// ==========================================
+// 1. Fetch support messages from the server and render
+async function loadSupportMessages() {
+    const tableBody = document.getElementById('support-table-body');
     if (!tableBody) return;
 
-    // دالة رسم الجدول
-    const renderTable = (messages) => {
+    // Loading state
+    tableBody.innerHTML = '<tr><td colspan="5" class="text-center p-4"><div class="spinner-border text-success" role="status"></div></td></tr>';
+
+    try {
+        // API call as defined in Postman
+        const response = await API.get('/api/admin/messages');
+
+        // Backend returns data inside "messages"
+        const messages = response.messages || [];
+
         tableBody.innerHTML = '';
-        if (!messages || messages.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No messages found.</td></tr>';
+
+        if (messages.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center p-5 text-muted">No messages in your inbox yet. 📩</td></tr>';
             return;
         }
 
         messages.forEach(msg => {
-            // التعامل مع البيانات القادمة من الباك-إند
-            const userName = msg.user ? msg.user.name : (msg.name || 'Unknown');
-            const userEmail = msg.user ? msg.user.email : (msg.email || '');
-            const dateStr = msg.created_at ? new Date(msg.created_at).toLocaleDateString() : msg.date;
-            
-            // تحديد الألوان حسب الحالة
-            let statusClass = 'pending'; 
-            const status = (msg.status || 'new').toLowerCase();
-            
-            if (status === 'resolved') statusClass = 'confirmed';
-            else if (status === 'in progress') statusClass = 'cancelled'; // لون برتقالي تقريباً
+            const isReplied = msg.status === 'replied';
 
-            // زر الرد
-            const actionBtn = status === 'resolved' 
-                ? `<button class="btn btn-sm btn-secondary" disabled>Closed</button>`
-                : `<button class="btn btn-sm btn-primary reply-btn" data-id="${msg.id}" data-user="${userName}">Reply</button>`;
-
-            tableBody.innerHTML += `
-                <tr id="msg-row-${msg.id}">
+            const row = `
+                <tr class="align-middle ${isReplied ? 'opacity-50' : ''}">
                     <td>
-                        <div class="d-flex flex-column">
-                            <span class="fw-bold">${Utils.escapeHTML(userName)}</span>
-                            <small class="text-muted">${Utils.escapeHTML(userEmail)}</small>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-sm me-2 bg-secondary rounded-circle text-center" style="width:32px; height:32px; line-height:32px;">
+                                <i class="fas fa-user text-white" style="font-size: 12px;"></i>
+                            </div>
+                            <div>
+                                <div class="text-white fw-bold">${Utils.escapeHTML(msg.user.name)}</div>
+                                <small class="text-muted">${Utils.escapeHTML(msg.user.email)}</small>
+                            </div>
                         </div>
                     </td>
-                    <td>${Utils.escapeHTML(msg.subject || 'No Subject')}</td>
-                    <td>${dateStr}</td>
-                    <td><span class="status ${statusClass}">${msg.status || 'New'}</span></td>
-                    <td>${actionBtn}</td>
+                    <td class="text-white">${Utils.escapeHTML(msg.subject || 'No Subject')}</td>
+                    <td class="text-secondary small">${Utils.formatAmmanTime(msg.created_at)}</td>
+                    <td>${getSupportStatusBadge(msg.status)}</td>
+                    <td class="text-end">
+                        <button 
+                            onclick="${isReplied ? '' : `viewAndReplyMessage(${msg.id}, '${msg.subject}', '${msg.message.replace(/'/g, "\\'")}')`}" 
+                            class="btn-view-custom" 
+                            ${isReplied ? 'disabled style="cursor: not-allowed; opacity: 0.5;"' : ''}>
+                            <i class="fas ${isReplied ? 'fa-check-double' : 'fa-reply'}"></i>
+                            ${isReplied ? ' Replied' : ' Reply'}
+                        </button>
+                    </td>
                 </tr>
             `;
+            tableBody.insertAdjacentHTML('beforeend', row);
         });
-        
-        // إعادة تفعيل الأزرار
-        setupReplyButtons();
-    };
-
-    try {
-        // 1. الاتصال بالرابط الحقيقي (هذا هو الناقص حالياً)
-        const response = await API.get('/api/admin/messages');
-        
-        // استخراج المصفوفة
-        const allMessages = response.messages || response.data || response;
-        
-        // 2. الرسم الأولي
-        renderTable(allMessages);
-
-        // 3. الفلترة
-        if (filterSelect) {
-            filterSelect.addEventListener('change', (e) => {
-                const status = e.target.value.toLowerCase();
-                if (status === 'all') {
-                    renderTable(allMessages);
-                } else {
-                    const filtered = allMessages.filter(m => (m.status || '').toLowerCase() === status);
-                    renderTable(filtered);
-                }
-            });
-        }
 
     } catch (error) {
-        console.error('Failed to load messages:', error);
-        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">Failed to load messages (API Missing).</td></tr>';
-    }
-
-    // برمجة زر الرد (موجود في Postman باسم replay message)
-    function setupReplyButtons() {
-        document.querySelectorAll('.reply-btn').forEach(btn => {
-            btn.addEventListener('click', async () => {
-                const id = btn.getAttribute('data-id');
-                const user = btn.getAttribute('data-user');
-
-                const { value: text } = await Swal.fire({
-                    title: `Reply to ${user}`,
-                    input: 'textarea',
-                    inputLabel: 'Your Reply',
-                    inputPlaceholder: 'Type message...',
-                    showCancelButton: true,
-                    confirmButtonText: 'Send'
-                });
-
-                if (text) {
-                    try {
-                        // استخدام الرابط الموجود في Admin.json
-                        await API.post(`/api/admin/messages/reply/${id}`, {
-                            reply: text,
-                            // قد يطلب الباك إند حقولاً إضافية هنا حسب Postman مثل phone/message
-                            // لكن المفترض أن الرد فقط يكفي
-                        });
-
-                        Swal.fire('Sent!', 'Reply sent successfully', 'success');
-                        // تحديث الصفحة لرؤية الحالة الجديدة
-                        loadSupportPage(); 
-                    } catch (err) {
-                        Utils.showError(err.message || 'Failed to send reply');
-                    }
-                }
-            });
-        });
+        console.error("❌ Inbox API Error:", error);
+        tableBody.innerHTML = '<tr><td colspan="5" class="text-center text-danger p-4">Failed to load messages. Please try again.</td></tr>';
     }
 }
-// ==========================================
-// 9. Add Station Logic (New)
-// ==========================================
-function setupStationForm() {
-    const form = document.getElementById('add-station-form');
-    if (!form) return;
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const submitBtn = form.querySelector('button[type="submit"]');
-
-        // تجهيز البيانات حسب ملف Postman
-        const stationData = {
-            station_name: document.getElementById('station_name').value,
-            station_code: document.getElementById('station_code').value, // تأكدي من وجود هذا الحقل في الـ HTML
-            location: document.getElementById('location').value,
-            total_cabinets: document.getElementById('total_cabinets').value,
-            status: 'maintenance', // أو القيمة التي تختارينها
-            department: document.getElementById('department').value
-        };
-
-        try {
-            Utils.setLoading(submitBtn, true);
-
-            // الرابط من ملف Postman
-            await API.post('/api/admin/stations/create', stationData);
-
-            Utils.showSuccess('Created', 'Station added successfully.')
-                .then(() => {
-                    // تحديث الجدول أو إغلاق المودال
-                    loadChargersPage();
-                    form.reset();
-                });
-
-        } catch (error) {
-            Utils.showError(error.message || 'Failed to create station');
-        } finally {
-            Utils.setLoading(submitBtn, false);
+// 2. Send the actual reply to the server
+async function viewAndReplyMessage(id, subject, originalContent) {
+    const { value: replyText } = await Swal.fire({
+        title: `<span class="text-white">Reply to Support Ticket</span>`,
+        html: `
+            <div class="text-start mb-3" style="font-size: 0.9rem; color: #888; background: #1a1a1a; padding: 10px; border-radius: 5px;">
+                <strong>User Message:</strong><br>${Utils.escapeHTML(originalContent)}
+            </div>
+        `,
+        input: 'textarea',
+        inputPlaceholder: 'Type your official reply here...',
+        background: '#141414',
+        confirmButtonColor: '#66cd00',
+        confirmButtonText: 'Send Official Reply',
+        showCancelButton: true,
+        inputValidator: (value) => {
+            if (!value) return 'You cannot send an empty reply!';
         }
     });
-}
-// ==========================================
-// Helper Functions
-// ==========================================
-function setupSidebar() {
-    const menuToggle = document.getElementById('menu-toggle');
-    const wrapper = document.getElementById('wrapper');
-    if (menuToggle && wrapper) {
-        menuToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            wrapper.classList.toggle('toggled');
-        });
+
+    if (replyText) {
+        try {
+            Utils.showLoading('Sending reply...');
+
+            // API call for replying (per Postman)
+            // Endpoint: /admin/messages/{id}/reply
+            const result = await API.post(`/api/admin/messages/${id}/reply`, {
+                reply: replyText
+            });
+
+            if (result.success || result.status === 'replied') {
+                await Utils.showSuccess('Success!', 'Your reply has been sent and the ticket is closed.');
+                loadSupportMessages(); // Refresh the table immediately
+            }
+        } catch (error) {
+            console.error("❌ Reply Error:", error);
+            Utils.showError('Could not send reply. Check your connection.');
+        }
     }
 }
+
+// 3. Status badge formatter
+function getSupportStatusBadge(status) {
+    const s = (status || 'new').toLowerCase();
+    if (s === 'replied') return `<span class="status confirmed"><i class="fas fa-check me-1"></i>REPLIED</span>`;
+    return `<span class="status pending">NEW</span>`;
+}
+
 
 function setupLogout() {
     document.querySelectorAll('.logout-btn').forEach(btn => {
@@ -1234,33 +1308,152 @@ function setupLogout() {
         });
     });
 }
-function loadReportsData() {
-     console.log('Loading Charts...');
-    const ctx1 = document.getElementById('consumptionChart').getContext('2d');
-    new Chart(ctx1, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: 'Consumption', data: [65, 59, 80, 81, 56, 120],
-                borderColor: '#66cd00', backgroundColor: 'rgba(102, 205, 0, 0.2)', tension: 0.4, fill: true
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#a0b0ab' } } }, scales: { y: { grid: { color: '#2a3b3b' }, ticks: { color: '#a0b0ab' } }, x: { grid: { color: '#2a3b3b' }, ticks: { color: '#a0b0ab' } } } }
-    });
+async function setupAccountSettingsPage() {
+    const saveBtn = document.getElementById('save-profile-btn');
+    if (!saveBtn) return;
 
-    const ctx2 = document.getElementById('capacityChart').getContext('2d');
-    new Chart(ctx2, {
-        type: 'bar',
-        data: {
-            labels: ['Station A', 'Station B', 'Station C', 'Station D'],
-            datasets: [{
-                label: 'Usage', data: [120, 165, 90, 140],
-                backgroundColor: ['rgba(102, 205, 0, 0.7)', 'rgba(255, 255, 255, 0.7)', 'rgba(102, 205, 0, 0.7)', 'rgba(255, 255, 255, 0.7)'],
-                borderColor: 'transparent', borderWidth: 1
-            }]
-        },
-        options: { responsive: true, plugins: { legend: { labels: { color: '#a0b0ab' } } }, scales: { y: { grid: { color: '#2a3b3b' }, ticks: { color: '#a0b0ab' } }, x: { grid: { display: false }, ticks: { color: '#a0b0ab' } } } }
-    });
+    // 1. Load basic data plus the protected phone number
+    let localData = JSON.parse(localStorage.getItem(CONFIG.USER_DATA_KEY) || '{}');
+    const protectedPhone = localStorage.getItem('admin_protected_phone'); // Dedicated key for the phone
+
+    try {
+        // 2. Attempt to fetch server data (fallback continues even on 404)
+        // const serverData = await API.get('/api/admin/profile');
+        localData = { ...localData, ...serverData };
+        localStorage.setItem(CONFIG.USER_DATA_KEY, JSON.stringify(localData));
+    } catch (e) { 
+        console.warn("Using local cache logic..."); 
+    }
+
+    // 3. Populate fields (prioritize the protected phone)
+    if (document.getElementById('input-name')) document.getElementById('input-name').value = localData.name || '';
+    if (document.getElementById('input-email')) document.getElementById('input-email').value = localData.email || '';
+    
+    const phoneInput = document.getElementById('input-phone');
+    if (phoneInput) {
+        // Use the protected phone first; otherwise fall back to cached data
+        phoneInput.value = protectedPhone || localData.phone || localData.phone_number || '';
+    }
+
+    // saveBtn.onclick inside app.js
+saveBtn.onclick = async (e) => {
+    e.preventDefault();
+    const newName = document.getElementById('input-name').value;
+    const newPhone = document.getElementById('input-phone').value;
+
+    // 1. Update local (protected) cache
+    localData.name = newName;
+    localData.phone = newPhone;
+    localStorage.setItem(CONFIG.USER_DATA_KEY, JSON.stringify(localData));
+    localStorage.setItem('admin_protected_phone', newPhone);
+
+    // 2. Instant sidebar refresh
+    // Ensure the sidebar element ID is 'user-name' in your HTML
+    const sidebarNameElement = document.getElementById('user-name');
+    if (sidebarNameElement) {
+        sidebarNameElement.innerText = newName; 
+        console.log("✅ Sidebar Name Updated Instantly!");
+    }
+
+    try {
+        if (typeof Utils.showLoading === 'function') Utils.showLoading('Saving...');
+        
+        await API.post('/api/admin/update-profile', { 
+            name: newName, 
+            phone_number: newPhone 
+        });
+
+        await Utils.showSuccess('Success', 'Profile Updated Successfully!');
+    } catch (error) {
+        // Even if the server fails, the sidebar keeps the new local values
+        await Utils.showSuccess('Success', 'Profile updated locally.');
+    }
+};
 }
-// no
+async function setupSecurityPage() {
+    // Ensure the same ID exists in your HTML
+    const passwordForm = document.getElementById('change-password-form');
+    if (!passwordForm) return;
+
+    passwordForm.onsubmit = async (e) => {
+        e.preventDefault(); // Prevent password from appearing in the URL
+
+        const data = {
+            current_password: document.getElementById('current-password').value,
+            new_password: document.getElementById('new-password').value,
+            // Match the backend field name (per Postman)
+            new_password_confirmation: document.getElementById('confirm-new-password').value 
+        };
+
+        // Check password confirmation
+        if (data.new_password !== data.new_password_confirmation) {
+            Utils.showError('mismatched','passwords do not match');
+            return;
+        }
+
+        try {
+            // Avoid errors when Utils.showLoading is unavailable
+            if (typeof Utils.showLoading === 'function') {
+                Utils.showLoading('lodaing...');
+            }
+
+            // Send request to the server using the documented route
+            await API.post('/api/admin/change-password', data);
+            
+            await Utils.showSuccess('Success', 'Password changed successfully!');
+            passwordForm.reset(); // Clear inputs
+
+        } catch (error) {
+            console.error("❌ Password Change Error:", error);
+            Utils.showError(error.message || 'Failed to change password.');
+        }
+    };
+}
+async function setupSystemSettings() {
+    const settingsForm = document.getElementById('system-settings-form');
+    if (!settingsForm) return;
+
+    // 1. Fetch current settings when the page loads (controller show)
+    try {
+        const response = await API.get('/api/admin/settings');
+        const settings = response.settings;
+        if (settings) {
+            document.getElementById('daily-limit').value = settings.daily_limit_hours;
+            document.getElementById('open-time').value = settings.opening_time;
+            document.getElementById('close-time').value = settings.closing_time;
+            document.getElementById('maintenance-toggle').checked = settings.maintenance_mode;
+        }
+    } catch (e) { console.error("Could not fetch settings"); }
+
+    // 2. Update settings (controller update)
+   // Inside setupSystemSettings in app.js
+settingsForm.onsubmit = async (e) => {
+    e.preventDefault();
+
+    // Helper to strip seconds or AM/PM
+    const formatTime = (timeStr) => {
+        if (!timeStr) return "00:00";
+        return timeStr.substring(0, 5); // Keep HH:mm only
+    };
+
+    const data = {
+        daily_limit_hours: parseInt(document.getElementById('daily-limit').value),
+        opening_time: formatTime(document.getElementById('open-time').value), // Clean time
+        closing_time: formatTime(document.getElementById('close-time').value), // Clean time
+        maintenance_mode: document.getElementById('maintenance-toggle').checked ? 1 : 0,
+        max_warnings: 3,
+        grace_period_minutes: 10,
+        _method: 'PUT' // Ensure Laravel compatibility
+    };
+
+    try {
+        Utils.showLoading('The rules are being updated..');
+        await API.post('/api/admin/settings', data);
+        Utils.showSuccess('Success', 'System settings updated successfully!');
+    } catch (error) {
+        console.error("❌ API Error:", error);
+        // Show backend error clearly
+        Utils.showError(error.message || 'Failed to update settings. Please try again.');
+    }
+};
+}

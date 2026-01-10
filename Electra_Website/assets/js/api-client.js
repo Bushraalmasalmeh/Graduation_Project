@@ -1,59 +1,52 @@
-// assets/js/api-client.js - النسخة الحقيقية (Real API)
-
+// assets/js/api-client.js
 class API {
     static async request(endpoint, method = 'GET', body = null) {
-        // بناء الرابط: يدمج رابط السيرفر مع المسار المطلوب
-        const url = `${CONFIG.API_BASE_URL}${endpoint}`;
-        
+        // Normalize base URL to avoid double slashes
+        const baseUrl = CONFIG.API_BASE_URL.replace(/\/$/, "");
+        const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+        const url = `${baseUrl}${cleanEndpoint}`;
+
         const headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         };
 
-        // إرفاق التوكن (إثبات الشخصية) من اللوكال، وهذا الشيء الوحيد الذي نحفظه
         const token = localStorage.getItem(CONFIG.TOKEN_KEY);
-        if (token) {
+        if (token && !endpoint.includes('login')) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const config = {
-            method,
-            headers,
-        };
-
-        if (body) {
-            config.body = JSON.stringify(body);
-        }
+        const config = { method, headers };
+        if (body) config.body = JSON.stringify(body);
 
         try {
-            console.log(`📡 Sending ${method} to ${url}`);
             const response = await fetch(url, config);
 
-            // إذا انتهت الجلسة، طرد المستخدم للدخول مرة أخرى
-            if (response.status === 401) {
-                localStorage.removeItem(CONFIG.TOKEN_KEY);
-                localStorage.removeItem(CONFIG.USER_DATA_KEY);
-                window.location.href = 'index.html';
-                throw new Error('Session expired');
+            if (response.status === 401 && !endpoint.includes('login')) {
+                this.handleSessionExpired();
+                return;
             }
+
+            // Successful update with no response body (204 No Content)
+            if (response.status === 204) return { success: true };
 
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || `Server Error (${response.status})`);
-            }
-
+            if (!response.ok) throw new Error(data.message || `Error ${response.status}`);
             return data;
-
         } catch (error) {
-            console.error('API Error:', error);
+            console.error("🌐 Network Error:", error.message);
             throw error;
         }
     }
 
-    // دوال مختصرة للاستخدام السريع
     static get(endpoint) { return this.request(endpoint, 'GET'); }
     static post(endpoint, body) { return this.request(endpoint, 'POST', body); }
     static put(endpoint, body) { return this.request(endpoint, 'PUT', body); }
+    static patch(endpoint, body) { return this.request(endpoint, 'PATCH', body); } // Added helper for PATCH
     static delete(endpoint) { return this.request(endpoint, 'DELETE'); }
-}
+
+    static handleSessionExpired() {
+        localStorage.clear();
+        window.location.href = 'index.html';
+    }
+}   

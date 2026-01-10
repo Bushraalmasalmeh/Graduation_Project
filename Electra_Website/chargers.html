@@ -62,7 +62,7 @@
                     <span class="navbar-brand">Charging Stations</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
                         <li class="nav-item me-3">
-                            <a class="nav-link" href="notifications.html"><i class="fas fa-bell"></i></a>
+                            <a class="nav-link" href="sysControll.html"><i class="fa-solid fa-screwdriver-wrench"></i></a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="settings.html"><i class="fas fa-user-circle"></i></a>
@@ -75,19 +75,20 @@
 
                 <div class="controls-container mb-4 d-flex justify-content-end align-items-center">
 
-                    <div class="d-flex align-items-center">
-                        <div class="filters-container">
-                            <select id="charger-filter-status" class="filter-select">
-                                <option value="all" selected>All Status</option>
-                                <option value="active">Active</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="Offline">Offline</option>
-                            </select>
-                        </div>
-                        <a href="add-charger.html" class="btn btn-primary-custom ms-3" style="white-space: nowrap;">
-                            <i class="fas fa-plus me-2"></i>Add Charger
-                        </a>
-                    </div>
+                    <div class="top-actions-container">
+    <div class="filters-container">
+        <select id="charger-filter-status" class="filter-select">
+            <option value="all" selected>All Status</option>
+            <option value="active">Active</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="offline">Offline</option>
+        </select>
+    </div>
+    
+ <a href="add-charger.html" class="btn-add-charger" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">
+    <i class="fas fa-plus"></i> Add Charger
+</a>
+</div>
                 </div>
 
                 <div class="table-responsive">

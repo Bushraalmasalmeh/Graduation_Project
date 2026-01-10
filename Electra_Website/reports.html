@@ -59,8 +59,8 @@
                     </button>
                     <span class="navbar-brand">Admin Reports</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i
-                                    class="fas fa-bell"></i></a></li>
+                        <li class="nav-item me-3"><a class="nav-link" href="sysControll.html"><i
+                                    class="fa-solid fa-screwdriver-wrench"></i></a></li>
                         <li class="nav-item"><a class="nav-link" href="settings.html"><i
                                     class="fas fa-user-circle"></i></a></li>
                     </ul>
@@ -69,35 +69,36 @@
             <div class="container-fluid content-inner">
                 <p class="text-muted mb-4">Manage User Limits and view usage statistics.</p>
 
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card report-card">
-                            <p class="card-title">Total Usage</p>
-                            <h4 class="card-text">421 <small>Hours</small></h4><span class="stat-change positive">+7.8%
-                                from last month</span>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card report-card">
-                            <p class="card-title">Total Capacity</p>
-                            <h4 class="card-text">1,680 <small>Hours</small></h4><span class="stat-change">Across all
-                                stations</span>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card report-card">
-                            <p class="card-title">Overall Usage</p>
-                            <h4 class="card-text">24.5<small>%</small></h4><span class="stat-change">75.5% capacity
-                                remaining</span>
-                        </div>
-                    </div>
-                    <div class="col-lg-3 col-md-6">
-                        <div class="stat-card report-card">
-                            <p class="card-title">Highest Usage Station</p>
-                            <h4 class="card-text">Station B</h4><span class="stat-change">165 Hours Used</span>
-                        </div>
-                    </div>
-                </div>
+              <div class="row g-4 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card report-card">
+            <p class="card-title">Total Usage</p>
+            <h4 class="card-text"><span id="stat-total-usage">0</span> <small>Hours</small></h4>
+            <span class="stat-change positive" id="stat-usage-change">+0%</span>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card report-card">
+            <p class="card-title">Total Capacity</p>
+            <h4 class="card-text"><span id="stat-total-capacity">0</span> <small>Hours</small></h4>
+            <span class="stat-change">Across all stations</span>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card report-card">
+            <p class="card-title">Overall Usage</p>
+            <h4 class="card-text"><span id="stat-usage-percent">0</span><small>%</small></h4>
+            <span class="stat-change"><span id="stat-remaining-percent">100</span>% capacity remaining</span>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="stat-card report-card">
+            <p class="card-title">Highest Usage Station</p>
+            <h4 class="card-text" id="stat-top-station">None</h4>
+            <span class="stat-change" id="stat-top-station-hours">0 Hours Used</span>
+        </div>
+    </div>
+</div>
 
                 <div class="mb-4">
                     <table class="table custom-table">
@@ -150,7 +151,163 @@
     <script src="assets/js/api-client.js"></script>
     
     <script src="assets/js/app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Dummy Data for simulation
+            const reportsData = {
+                totalUsage: 7500, // In minutes
+                totalCapacity: 1000, 
+                overallUsage: 68,
+                topStation: {
+                    station_name: 'IT' // ✅ Name updated here
+                },
+                // Line Chart Data
+                monthlyBookings: [
+                    { month: 1, total: 45 },
+                    { month: 2, total: 50 },
+                    { month: 3, total: 75 },
+                    { month: 4, total: 60 },
+                    { month: 5, total: 90 },
+                    { month: 6, total: 120 },
+                    { month: 7, total: 110 },
+                    { month: 8, total: 140 }
+                ],
+                // ✅ Column/Bar Chart Data (Name updated here too)
+                stationUsage: [
+                    { station_name: 'IT', usage_hours: 3600 }, 
+                    { station_name: 'Engineering', usage_hours: 2400 },
+                    { station_name: 'Pharmacy', usage_hours: 1200 },
+                    { station_name: 'Arts', usage_hours: 900 }
+                ],
+                // Top Users Table Data
+                topUsers: [
+                    { name: 'Islam Noor', bookings_count: 25 },
+                    { name: 'Fares Ali', bookings_count: 18 },
+                    { name: 'Ahmad Sami', bookings_count: 15 },
+                    { name: 'Sara Majed', bookings_count: 12 },
+                    { name: 'Khaled Omar', bookings_count: 8 }
+                ]
+            };
+
+            // --- Populate Data ---
+            document.getElementById('stat-total-usage').innerText = Math.round(reportsData.totalUsage / 60);
+            document.getElementById('stat-total-capacity').innerText = reportsData.totalCapacity;
+            document.getElementById('stat-usage-percent').innerText = reportsData.overallUsage;
+            document.getElementById('stat-remaining-percent').innerText = Math.max(0, 100 - reportsData.overallUsage);
+            
+            const topStation = reportsData.topStation ? reportsData.topStation.station_name : 'None';
+            document.getElementById('stat-top-station').innerText = topStation;
+            document.getElementById('stat-top-station-hours').innerText = '45 Hours Used'; 
+
+            // Render Charts
+            renderTrendsChart(reportsData.monthlyBookings);
+            renderCapacityChart(reportsData.stationUsage);
+
+            // Populate Table
+            renderTopUsersTable(reportsData.topUsers);
+
+        } catch (error) {
+            console.error("Reports Error:", error);
+        }
+    });
+
+    // Render Consumption Trends Chart
+    function renderTrendsChart(monthlyData) {
+        const ctx = document.getElementById('consumptionChart').getContext('2d');
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const labels = monthlyData.map(item => monthNames[item.month - 1]);
+        const values = monthlyData.map(item => item.total);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Total Bookings',
+                    data: values,
+                    borderColor: '#66cd00',
+                    backgroundColor: 'rgba(102, 205, 0, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#888' } },
+                    x: { grid: { display: false }, ticks: { color: '#888' } }
+                }
+            }
+        });
+    }
+
+    // ✅✅ Render Station Capacity Chart (Column Chart - Bar) ✅✅
+    function renderCapacityChart(stationUsage) {
+        const ctx = document.getElementById('capacityChart').getContext('2d');
+        
+        const labels = stationUsage.map(s => s.station_name);
+        const data = stationUsage.map(s => Math.round(s.usage_hours / 60)); 
+
+        new Chart(ctx, {
+            type: 'bar', //
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Hours Used',
+                    data: data,
+                    // Different colors for each column
+                    backgroundColor: ['#66cd00', '#3498db', '#f39c12', '#e74c3c'], 
+                    borderRadius: 5, // Rounded corners for bars
+                    barThickness: 40 // Bar thickness
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false } // Hide legend since names are under the columns
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: '#888' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#aaa', font: { size: 12 } }
+                    }
+                }
+            }
+        });
+    }
+
+    // Top Users Table
+    function renderTopUsersTable(topUsers) {
+        const tbody = document.getElementById('user-limits-table-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = topUsers.map(user => `
+            <tr class="align-middle">
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-sm me-2 bg-secondary rounded-circle text-center" style="width:28px; height:28px; line-height:28px;">
+                            <i class="fas fa-user text-white" style="font-size: 11px;"></i>
+                        </div>
+                        <span class="text-white">${Utils.escapeHTML(user.name)}</span>
+                    </div>
+                </td>
+                <td>${user.bookings_count} Bookings</td>
+                <td>24 <small class="text-muted">Hours Limit</small></td>
+                <td>
+                    <span class="status confirmed" style="font-size: 0.8rem; padding: 4px 8px;">ACTIVE</span>
+                </td>
+            </tr>
+        `).join('');
+    }
+</script>
 </body>
-</body>
+
 
 </html>

@@ -12,6 +12,88 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/main.css">
 </head>
+<style>
+    .slots-container-style {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        max-height: 320px;
+        overflow-y: auto;
+        padding: 20px;
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: 100px;
+        box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.02);
+    }
+
+    .slots-container-style::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .slots-container-style::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+    }
+
+    .slots-container-style::-webkit-scrollbar-thumb {
+        background: rgba(102, 205, 0, 0.3);
+        border-radius: 10px;
+    }
+
+    .slots-container-style::-webkit-scrollbar-thumb:hover {
+        background: rgba(102, 205, 0, 0.5);
+    }
+
+    .slot-chip {
+        flex: 0 0 calc(33.33% - 12px);
+        background: linear-gradient(145deg, #1a1a1a, #0f0f0f);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #e0e0e0;
+        padding: 14px 10px;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .slot-chip:hover {
+        background: linear-gradient(145deg, #252525, #1a1a1a);
+        border-color: rgba(102, 205, 0, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 205, 0, 0.2);
+    }
+
+    .slot-chip.selected,
+    .slot-chip.active {
+        background: linear-gradient(45deg, #66cd00, #55a600) !important;
+        border-color: #66cd00 !important;
+        color: #000 !important;
+        box-shadow: 0 0 20px rgba(102, 205, 0, 0.5), 0 4px 12px rgba(102, 205, 0, 0.3);
+        font-weight: 700;
+        transform: translateY(-3px) scale(1.02);
+    }
+
+    .slot-chip.selected small,
+    .slot-chip.active small {
+        color: rgba(0, 0, 0, 0.7) !important;
+    }
+
+    .slot-chip small {
+        display: block;
+        color: #8a9a95;
+        font-size: 0.7rem;
+        margin-bottom: 4px;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    .slot-chip strong {
+        font-size: 1.05rem;
+        letter-spacing: 0.5px;
+    }
+</style>
 
 <body>
     <div class="d-flex" id="wrapper">
@@ -21,16 +103,22 @@
                     <h3>ELECTRA</h3>
                 </div>
                 <ul class="sidebar-nav">
-                    <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                    <li class="sidebar-item"><a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a></li>
-                    <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a></li>
-                    <li class="sidebar-item active"><a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
-                    <li class="sidebar-item"><a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a></li>
+                    <li class="sidebar-item"><a href="dashboard.html"><i
+                                class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li class="sidebar-item"><a href="chargers.html"><i
+                                class="fas fa-charging-station"></i><span>Chargers</span></a></li>
+                    <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a>
+                    </li>
+                    <li class="sidebar-item active"><a href="bookings.html"><i
+                                class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
+                    <li class="sidebar-item"><a href="reports.html"><i
+                                class="fas fa-file-alt"></i><span>Reports</span></a></li>
                 </ul>
             </div>
             <div class="sidebar-footer">
                 <ul class="sidebar-nav">
-                    <li class="sidebar-item"><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                    <li class="sidebar-item"><a href="settings.html"><i class="fas fa-cog"></i><span>Settings</span></a>
+                    </li>
                 </ul>
             </div>
         </aside>
@@ -42,215 +130,315 @@
                     </button>
                     <span class="navbar-brand">Add New Booking</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-user-circle"></i></a></li>
+                        <li class="nav-item me-3"><a class="nav-link" href="sysControll.html"><i
+                                    class="fa-solid fa-screwdriver-wrench"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
+                                    class="fas fa-user-circle"></i></a></li>
                     </ul>
                 </div>
             </nav>
             <div class="container-fluid content-inner">
-                <div class="add-form-container">
+                <div class="add-form-container booking-form-container">
                     <form id="add-booking-form">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <div class="row g-4">
+                            <div class="col-md-6">
                                 <label for="booking-user">Select User</label>
-                                <select id="booking-user" name="booking_user" required>
+                                <select id="booking-user" name="booking_user" class="form-control-dark" required>
                                     <option value="" disabled selected>Loading users...</option>
                                 </select>
                             </div>
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="booking-station">Select Station</label>
-                                <select id="booking-station" class="form-select bg-black text-light border-secondary" required>
+                                <select id="booking-station" class="form-control-dark" required>
                                     <option value="" disabled selected>Loading stations...</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="booking-cabinet">Select Cabinet</label>
-                                <select id="booking-cabinet" class="form-select bg-black text-light border-secondary" required disabled>
+                                <select id="booking-cabinet" class="form-control-dark" required disabled>
                                     <option value="" disabled selected>Select Station first</option>
                                 </select>
                             </div>
-
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4">
                                 <label for="booking-charger">Select Charger</label>
-                                <select id="booking-charger" class="form-select bg-black text-light border-secondary" required disabled>
+                                <select id="booking-charger" class="form-control-dark" required disabled>
                                     <option value="" disabled selected>Select Cabinet first</option>
                                 </select>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="booking-date">Date</label>
-                                <input type="date" id="booking-date" name="booking_date" required>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="booking-status">Status</label>
-                                <select id="booking-status" name="booking_status" required>
-                                    <option value="pending">Pending</option>
-                                    <option value="active">Active</option>
+                            <div class="col-md-6">
+                                <label for="booking-duration">Booking Duration</label>
+                                <select id="booking-duration" name="duration_minutes" class="form-control-dark" required>
+                                    <option value="60" selected>1 Hour (60 min)</option>
+                                    <option value="90">1.5 Hours (90 min)</option>
+                                    <option value="120">2 Hours (120 min)</option>
                                 </select>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
+                                <label for="booking-date">Date</label>
+                                <input type="date" id="booking-date" name="booking_date" class="form-control-dark" required>
+                            </div>
+
+                            <div class="col-12 mt-3">
+                                <label class="form-label">Available Time Slots</label>
+                                <div id="slots-container" class="slots-container-style">
+                                    <p class="text-muted m-auto">Select station, date, and duration to see slots.</p>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
                                 <label for="booking-start-time">Start Time</label>
-                                <input type="time" id="booking-start-time" name="booking_start_time" required>
+                                <input type="time" id="booking-start-time" name="booking_start_time" class="form-control-dark" required>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6">
                                 <label for="booking-end-time">End Time</label>
-                                <input type="time" id="booking-end-time" name="booking_end_time" required>
+                                <input type="time" id="booking-end-time" name="booking_end_time" class="form-control-dark" readonly>
                             </div>
-                        </div>
 
-                        <div class="mt-4 text-end">
-                            <a href="bookings.html" class="btn btn-secondary-custom me-2">Cancel</a>
-                            <input type="submit" class="btn-submit-custom" value="Save Booking">
+                            <div class="col-md-6">
+                                <label for="booking-status">Status</label>
+                                <select id="booking-status" name="booking_status" class="form-control-dark" required>
+                                    <option value="pending" selected>Pending</option>
+                                    <option value="active">Active (Charging now)</option>
+                                    <option value="completed">Completed</option>
+                                    <option value="cancelled">Cancelled</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" id="start_time" name="start_time">
                         </div>
-                    </form>
-                </div>
+            <div class="mt-4 text-end">
+                <a href="bookings.html" class="btn btn-secondary-custom me-2">Cancel</a>
+                <button type="submit" id="save-booking-btn" class="btn btn-primary-custom">Save
+                    Booking</button>
             </div>
-        </main>
+            </form>
     </div>
-
-   <script src="assets/js/config.js"></script>
+    </div>
+    </main>
+    </div>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/config.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
+   
+<script>
+    // --- 1. Global state variables ---
+let selectedSlotStart = null;
+let selectedChargerId = null;
+let selectedCabinetId = null;
+let currentStationData = null;
 
-    <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log("⚡ Script with UID Logic Loaded!"); // 👈 هذه الجملة تؤكد أن الكود الجديد يعمل
+/**
+ * Slot selection helper — handles time diff and fills inputs
+ */
+window.selectBookingSlot = (element, startTimeIso, chargerId, cabinetId) => {
+    document.querySelectorAll('.slot-chip').forEach(chip => chip.classList.remove('active'));
+    element.classList.add('active');
 
-            const form = document.getElementById('add-booking-form');
-            const userSelect = document.getElementById('booking-user');
-            const stationSelect = document.getElementById('booking-station');
-            const cabinetSelect = document.getElementById('booking-cabinet');
-            const chargerSelect = document.getElementById('booking-charger');
+    selectedSlotStart = startTimeIso; 
+    selectedChargerId = chargerId;
+    selectedCabinetId = cabinetId;
+
+    const startTimeInput = document.getElementById('booking-start-time');
+    const dateInput = document.getElementById('booking-date');
+    const durationInput = document.getElementById('booking-duration');
+    const endTimeInput = document.getElementById('booking-end-time');
+
+    if (startTimeIso) {
+        const timePart = startTimeIso.split('T')[1]; 
+        const [hours, minutes] = timePart.split(':');
+        
+        if (startTimeInput) startTimeInput.value = `${hours}:${minutes}`;
+        if (dateInput) dateInput.value = startTimeIso.split('T')[0];
+
+        if (durationInput && endTimeInput) {
+            const duration = parseInt(durationInput.value) || 60;
+            const dateObj = new Date(startTimeIso);
+            const endObj = new Date(dateObj.getTime() + duration * 60000);
+            const endH = String(endObj.getUTCHours()).padStart(2, '0');
+            const endM = String(endObj.getUTCMinutes()).padStart(2, '0');
+            endTimeInput.value = `${endH}:${endM}`;
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const bookingForm = document.getElementById('add-booking-form');
+    const stationSelect = document.getElementById('booking-station');
+    const cabinetSelect = document.getElementById('booking-cabinet');
+    const chargerSelect = document.getElementById('booking-charger');
+    const userSelect = document.getElementById('booking-user');
+    const slotsContainer = document.getElementById('slots-container');
+    const dateInput = document.getElementById('booking-date');
+    const durationSelect = document.getElementById('booking-duration');
+
+    // --- 2. Load initial data ---
+    const initializePage = async () => {
+        try {
+            const stationRes = await API.get('/api/admin/stations');
+            const stations = stationRes.stations || stationRes.data || [];
+            stationSelect.innerHTML = '<option value="" disabled selected>Select Station</option>' +
+                stations.map(s => `<option value="${s.id}">${Utils.escapeHTML(s.station_name)}</option>`).join('');
+
+            const userRes = await API.get('/api/admin/users');
+            const users = userRes.users || userRes.data || [];
+            if (userSelect) {
+                userSelect.innerHTML = '<option value="" disabled selected>Select User</option>' +
+                    users.map(u => `<option value="${u.id}">${Utils.escapeHTML(u.name)} (${u.email})</option>`).join('');
+            }
+        } catch (error) {
+            Utils.showError('Failed to initialize page data.');
+        }
+    };
+
+    // --- 3. Fetch available slots ---
+    window.refreshAvailability = async () => {
+        const stationId = stationSelect.value;
+        const cabinetId = cabinetSelect.value;
+        const chargerId = chargerSelect.value;
+        const date = dateInput.value;
+        const duration = durationSelect.value;
+
+        // Reset selection on refresh
+        selectedSlotStart = null;
+
+        if (!stationId || !date || !duration) return;
+
+        slotsContainer.innerHTML = '<div class="text-center p-3">Searching for slots...</div>';
+
+        try {
+            const response = await API.get(`/api/admin/stations/${stationId}/availability?date=${date}&duration=${duration}`);
+            let chargers = response.chargers || response.data || [];
             
-            let localStationsData = [];
+            if (chargerId) {
+                chargers = chargers.filter(c => (c.charger_id || c.id) == chargerId);
+            } else if (cabinetId) {
+                const cabinet = currentStationData.cabinets.find(cab => cab.id == cabinetId);
+                const chargerIdsInCabinet = cabinet ? cabinet.chargers.map(ch => ch.id) : [];
+                chargers = chargers.filter(c => chargerIdsInCabinet.includes(c.charger_id || c.id));
+            }
 
-            // 1. جلب المستخدمين
-            try {
-                const usersResp = await API.get('/api/admin/users');
-                const users = usersResp.users || usersResp.data || usersResp;
-                userSelect.innerHTML = '<option value="" disabled selected>Select User</option>';
-                if(Array.isArray(users)) {
-                    users.forEach(u => userSelect.innerHTML += `<option value="${u.id}">${u.name} (${u.email})</option>`);
-                }
-            } catch (e) { console.error('Users Error:', e); }
-
-            // 2. جلب المحطات
-            try {
-                const response = await API.get('/api/stations');
-                if (response.stations) localStationsData = response.stations;
-                else if (Array.isArray(response)) localStationsData = response;
-                else if (response.data) localStationsData = response.data;
-
-                console.log("✅ Stations Loaded:", localStationsData);
-
-                stationSelect.innerHTML = '<option value="" disabled selected>Select Station</option>';
-                localStationsData.forEach(st => {
-                    stationSelect.innerHTML += `<option value="${st.id}">${st.station_name || st.name || 'Station ' + st.id}</option>`;
+            let html = '';
+            chargers.forEach(charger => {
+                const slots = charger.available_slots || [];
+                slots.forEach(slot => {
+                    const timeLabel = Utils.formatAmmanTime(slot.start);
+                    html += `
+                        <div class="slot-chip" onclick="selectBookingSlot(this, '${slot.start}', ${charger.charger_id || charger.id}, ${cabinetId || 'null'})">
+                            <small>UID: ${charger.uid}</small>
+                            <strong>${timeLabel}</strong>
+                        </div>`;
                 });
-            } catch (err) { console.error("Stations Fetch Error:", err); }
-
-            // 3. عند تغيير المحطة
-            stationSelect.addEventListener('change', function() {
-                const selectedId = this.value;
-                const station = localStationsData.find(st => String(st.id) === String(selectedId));
-
-                cabinetSelect.innerHTML = '<option value="" disabled selected>Select Cabinet</option>';
-                chargerSelect.innerHTML = '<option value="" disabled selected>Select Cabinet first</option>';
-                chargerSelect.disabled = true;
-
-                if (station && station.cabinets && station.cabinets.length > 0) {
-                    cabinetSelect.disabled = false;
-                    station.cabinets.forEach(cab => {
-                        cabinetSelect.innerHTML += `<option value="${cab.id}">Cabinet ${cab.cabinet_number}</option>`;
-                    });
-                } else {
-                    cabinetSelect.disabled = true;
-                    cabinetSelect.innerHTML = '<option>No cabinets available</option>';
-                }
             });
 
-            // 4. عند تغيير الكابينة
-            // 4. عند تغيير الكابينة -> فتح الشواحن (التعديل ليعرض الحالة بدل UID)
-            cabinetSelect.addEventListener('change', function() {
-                const stationId = stationSelect.value;
-                const cabinetId = this.value;
+            slotsContainer.innerHTML = html || '<div class="text-center p-3 text-warning">No slots available.</div>';
+        } catch (error) {
+            Utils.showError('Failed to load available slots.');
+            slotsContainer.innerHTML = '<div class="text-center p-3 text-danger">Error loading slots.</div>';
+        }
+    };
+
+    // --- 4. Event listeners ---
+    stationSelect.addEventListener('change', async function() {
+        const stationId = this.value;
+        cabinetSelect.disabled = true;
+        cabinetSelect.innerHTML = '<option>Loading...</option>';
+        try {
+            const response = await API.get(`/api/admin/stations/${stationId}`);
+            currentStationData = response.station || response.data;
+            const cabinets = currentStationData.cabinets || [];
+            cabinetSelect.innerHTML = '<option value="" selected>All Cabinets</option>' +
+                cabinets.map(cab => `<option value="${cab.id}">Cabinet ${cab.cabinet_number || cab.id}</option>`).join('');
+            cabinetSelect.disabled = false;
+            refreshAvailability();
+        } catch (e) {
+            Utils.showError('Could not load station cabinets.');
+        }
+    });
+
+    cabinetSelect.addEventListener('change', function() {
+        const cabId = this.value;
+        if (cabId && currentStationData) {
+            const cabinet = currentStationData.cabinets.find(c => c.id == cabId);
+            if (cabinet && cabinet.chargers) {
+                chargerSelect.innerHTML = '<option value="" selected>All Chargers</option>' +
+                    cabinet.chargers.map(ch => `<option value="${ch.id}">Charger ${ch.uid}</option>`).join('');
+                chargerSelect.disabled = false;
+            }
+        }
+        refreshAvailability();
+    });
+
+    chargerSelect.addEventListener('change', refreshAvailability);
+    dateInput.addEventListener('change', refreshAvailability);
+    durationSelect.addEventListener('change', refreshAvailability);
+
+    // --- 5. Submit with pre-check ---
+    if (bookingForm) {
+        bookingForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const userId = userSelect.value;
+            if (!userId) return Utils.showError('Please select a user!');
+            if (!selectedSlotStart) return Utils.showError('Please select a time slot!');
+
+            const bookingDate = selectedSlotStart.split('T')[0];
+            const stationName = stationSelect.options[stationSelect.selectedIndex].text;
+
+            try {
+                Utils.setLoading('save-booking-btn', true, 'Checking existing bookings...');
+
+                // fetch all bookings to ensure the user has no booking for this day
+                const bookingsRes = await API.get('/api/admin/bookings');
+                const allBookings = bookingsRes.bookings || bookingsRes.data || [];
                 
-                const station = localStationsData.find(st => String(st.id) === String(stationId));
-                const cabinet = station ? station.cabinets.find(c => String(c.id) === String(cabinetId)) : null;
+                // Find a booking for the same user and date (excluding cancelled)
+                const existingBooking = allBookings.find(b => 
+                    b.user_id == userId && 
+                    b.start_time.startsWith(bookingDate) && 
+                    b.status.toLowerCase() !== 'cancelled'
+                );
 
-                chargerSelect.innerHTML = '<option value="" disabled selected>Select Charger</option>';
-
-                if (cabinet && cabinet.chargers && cabinet.chargers.length > 0) {
-                    chargerSelect.disabled = false;
-                    cabinet.chargers.forEach(ch => {
-                        // ✅ التعديل هنا: عرضنا الحالة (Available/Busy) كما كانت سابقاً
-                        const statusText = ch.status ? `(${ch.status})` : '';
-                        
-                        // القيمة هي ID (للبحث)، والنص هو الرقم + الحالة
-                        chargerSelect.innerHTML += `<option value="${ch.id}">Charger ${ch.charger_number} ${statusText}</option>`;
-                    });
-                } else {
-                    chargerSelect.disabled = true;
-                    chargerSelect.innerHTML = '<option>No chargers available</option>';
-                }
-            });            // 5. الحفظ (الإصلاح النهائي مع UID)
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = form.querySelector('input[type="submit"]');
-
-                if (!userSelect.value || !stationSelect.value || !cabinetSelect.value || !chargerSelect.value) {
-                    Swal.fire('Error', 'Please fill all fields', 'warning');
-                    return;
+                if (existingBooking) {
+                    Utils.setLoading('save-booking-btn', false, 'Save Booking');
+                    // Show a user-facing alert instead of a console error
+                    return Utils.showError(`Wait! This user already has a booking today (${bookingDate}).`);
                 }
 
-                // البحث عن UID الشاحن المختار
-                const stId = stationSelect.value;
-                const cabId = cabinetSelect.value;
-                const chId = chargerSelect.value;
-
-                const stationData = localStationsData.find(s => String(s.id) === String(stId));
-                const cabinetData = stationData ? stationData.cabinets.find(c => String(c.id) === String(cabId)) : null;
-                const chargerData = cabinetData ? cabinetData.chargers.find(ch => String(ch.id) === String(chId)) : null;
-
-                if (!chargerData || !chargerData.uid) {
-                    Swal.fire('Error', 'Charger UID missing! Please refresh.', 'error');
-                    return;
-                }
-
-                const data = {
-                    user_id: userSelect.value,
+                // If no prior booking exists, proceed to save
+                const payload = {
+                    user_id: userId,
+                    uid: userId,
                     station_id: stationSelect.value,
-                    cabinet_id: cabinetSelect.value,
-                    charger_id: chargerSelect.value,
-                    uid: chargerData.uid,  // ✅ هذا هو السطر الذي ينقصك في الملف الحالي
-                    start_time: `${document.getElementById('booking-date').value} ${document.getElementById('booking-start-time').value}:00`,
-                    end_time: `${document.getElementById('booking-date').value} ${document.getElementById('booking-end-time').value}:00`,
-                    status: document.getElementById('booking-status').value
+                    station_name: stationName, 
+                    cabinet_id: selectedCabinetId,
+                    charger_id: selectedChargerId,
+                    start_time: selectedSlotStart,
+                    duration_minutes: parseInt(durationSelect.value),
+                    status: 'pending'
                 };
 
-                console.log("📤 Sending Data WITH UID:", data);
+                Utils.setLoading('save-booking-btn', true, 'Creating Booking...');
+                await API.post('/api/admin/bookings', payload);
+                
+                await Utils.showSuccess('Success', 'Booking created successfully!');
+                window.location.href = 'bookings.html';
 
-                try {
-                    btn.value = "Saving...";
-                    btn.disabled = true;
-                    
-                    await API.post('/api/admin/bookings', data);
-                    
-                    Swal.fire('Success', 'Booking Created!', 'success')
-                        .then(() => window.location.href = 'bookings.html');
-                } catch (err) {
-                    console.error(err);
-                    Swal.fire('Error', err.message || 'Failed to save', 'error');
-                } finally {
-                    btn.value = "Save Booking";
-                    btn.disabled = false;
-                }
-            });
+            } catch (error) {
+                const errorMsg = error.response?.data?.message || 'Error creating booking';
+                Utils.showError(errorMsg);
+            } finally {
+                Utils.setLoading('save-booking-btn', false, 'Save Booking');
+            }
         });
-    </script>
+    }
+
+    initializePage();
+});
+</script>
 </body>
+
 </html>

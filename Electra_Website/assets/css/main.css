@@ -160,28 +160,28 @@ span{
         left: 0;
         height: 100vh;
         width: 250px;
-        z-index: 1050; /* رقم عالي جداً ليظهر فوق كل شيء */
+        z-index: 1050; /* High enough to sit above all content */
         
-        /* إخفاء الشريط بتحريكه خارج الشاشة */
+    /* Hide sidebar by translating off-screen */
         transform: translateX(-100%); 
         transition: transform 0.3s ease-in-out;
         
-        /* إعادة تعيين بعض الخصائص */
+    /* Reset some properties */
         margin-left: 0 !important; 
     }
 
-    /* عند تفعيل الكلاس، أعد الشريط لمكانه */
+    /* When toggled, bring sidebar back */
     #wrapper.toggled #sidebar {
         transform: translateX(0);
     }
 
-    /* الخلفية المعتمة */
+    /* Dimmed overlay */
     #wrapper.toggled::before {
         content: "";
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.7);
-        z-index: 1040; /* تحت السايدبار مباشرة */
+        z-index: 1040; /* Directly beneath the sidebar */
         backdrop-filter: blur(3px);
     }
 }

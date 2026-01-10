@@ -41,74 +41,82 @@
                 </li>
             </ul>
         </aside>
-        <main class="main-content" id="main-content">
-            <nav class="navbar">
-                <div class="container-fluid">
-                    <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <span class="navbar-brand">User Profile</span>
-                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i
-                                    class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
-                                    class="fas fa-user-circle"></i></a></li>
-                    </ul>
-                </div>
-            </nav>
-            <div class="container-fluid content-inner">
-                <a href="users.html" class="back-link mb-4"><i class="fas fa-arrow-left me-2"></i>Back to User List</a>
+      <main class="main-content" id="main-content">
+    <nav class="navbar">
+        <div class="container-fluid">
+            <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="navbar-brand">User Profile</span>
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
+                <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-user-circle"></i></a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container-fluid content-inner">
+        <a href="users.html" class="back-link mb-4"><i class="fas fa-arrow-left me-2"></i>Back to User List</a>
 
-                <div class="row">
-                    <div class="col-lg-7">
-                        <div class="profile-card">
-                            <div class="profile-header">
-                                <i class="fas fa-user-circle profile-avatar"></i>
-                                <div class="profile-info">
-                                    <h4 class="profile-name">Islam Noor</h4>
-                                    <p class="profile-email text-muted">islamabukhalaf5@gmail.com</p>
-                                    <span class="status confirmed">Active</span>
-                                </div>
-                            </div>
-                            <hr class="profile-divider">
-                            <div class="profile-details">
-                                <div class="detail-item">
-                                    <span class="detail-label">Role</span>
-                                    <span class="detail-value">Student</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Ticket ID</span>
-                                    <span class="detail-value">111</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Member Since</span>
-                                    <span class="detail-value">Oct 20, 2025</span>
-                                </div>
-                                <div class="detail-item">
-                                    <span class="detail-label">Total Bookings</span>
-                                    <span class="detail-value">12</span>
-                                </div>
-                            </div>
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <i class="fas fa-user-circle profile-avatar"></i>
+                        <div class="profile-info">
+                            <h4 class="profile-name" id="profile-name">Loading...</h4>
+                            <p class="profile-email text-muted" id="profile-email">...</p>
+                            <span class="status confirmed" id="profile-status">Active</span>
                         </div>
                     </div>
-                    <div class="col-lg-5">
-                        <div class="profile-card">
-                            <h5 class="card-section-title">Monthly Charging Limit</h5>
-                            <form id="update-limit-form">
-                                <label for="monthly-limit">Set Monthly Hours</label>
-                                <input type="text" id="monthly-limit" name="monthly_limit" value="40h">
-                                <div class="d-flex justify-content-end mt-3">
-                                    <button type="submit" class="btn btn-primary-custom">Update Limit</button>
-                                </div>
-                            </form>
-                            <hr class="profile-divider">
-                            <h5 class="card-section-title">Account Actions</h5>
-                            <button class="btn btn-danger-custom w-100">Delete User Account</button>
+                    <hr class="profile-divider">
+                    <div class="profile-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Role</span>
+                            <span class="detail-value" id="profile-role">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Job Number</span>
+                            <span class="detail-value" id="profile-job">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Member Since</span>
+                            <span class="detail-value" id="profile-joined">-</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Phone Number</span>
+                            <span class="detail-value" id="profile-phone">-</span>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+           <div class="col-lg-5">
+    <div class="profile-card">
+        <h5 class="card-section-title">Usage Limits</h5>
+        
+        <div class="d-flex align-items-center justify-content-between mt-4 mb-3">
+            <div>
+                <span class="detail-label d-block mb-1">Daily Charging Limit</span>
+                <span class="detail-value fw-bold" id="profile-daily-limit" style="font-size: 1.2rem;">-</span>
+            </div>
+            <div class="icon-box-theme">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+        
+        <p class="text-muted small">This is the maximum allowed charging hours per day for this user.</p>
+
+        <hr class="profile-divider">
+
+        <h5 class="card-section-title text-danger">Account Actions</h5>
+        <p class="text-muted small mb-3">Permanently delete this user and all associated data.</p>
+        
+        <button id="delete-user-btn" class="btn btn-danger-custom w-100">
+            <i class="fas fa-trash-alt me-2"></i> Delete User Account
+        </button>
+    </div>
+</div>
+        </div>
+    </div>
+</main>
     </div>
      <script src="assets/js/config.js"></script>
     <script src="assets/js/utils.js"></script>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
+    </link>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        /* تنسيق قائمة المستخدمين المتعددة */
+        .user-selection-container {
+            max-height: 150px;
+            /* ارتفاع ثابت */
+            overflow-y: auto;
+            /* تفعيل السكرول */
+            background-color: #212529;
+            /* لون خلفية داكن */
+        }
+
+        /* تخصيص شكل شريط التمرير (Scrollbar) ليناسب الثيم الداكن */
+        .user-selection-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .user-selection-container::-webkit-scrollbar-track {
+            background: #2c3034;
+        }
+
+        .user-selection-container::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 3px;
+        }
+
+        .user-selection-container::-webkit-scrollbar-thumb:hover {
+            background: #66cd00;
+            /* اللون الأخضر عند التحويم */
+        }
+    </style>
+</head>
+
+<body>
+   <div class="d-flex" id="wrapper">
+        <aside class="sidebar sidebar-settings" id="sidebar">
+            <div class="sidebar-user-profile">
+                <i class="fas fa-user-circle"></i>
+                <h5 class="user-name" id="user-name">loading...</h5>
+                <p class="user-email text-muted" id="user-email">...</p>
+            </div>
+            <ul class="sidebar-nav">
+                <li class="sidebar-item"><a href="settings.html"><i class="fas fa-user-cog"></i><span>Account</span></a></li>
+                <li class="sidebar-item active"><a href="sysControll.html"><i class="fa-solid fa-screwdriver-wrench"></i><span>System settings</span></a></li>
+                <li class="sidebar-item "><a href="settings-security.html"><i class="fas fa-shield-alt"></i><span>Security</span></a></li>
+            </ul>
+            
+        </aside>
+        <main class="main-content" id="main-content">
+            <nav class="navbar">
+                <div class="container-fluid">
+                    <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <span class="navbar-brand">Notifications</span>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
+                        <li class="nav-item">
+                           <a class="nav-link" href="dashboard.html"><i class="fas fa-times"></i> Close Settings</a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+           <div class="container-fluid content-inner">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="content-box shadow-sm">
+                <div class="d-flex align-items-center mb-4">
+                    <i class="fas fa-tools text-success fa-2x section-heading-icon"></i>
+                    <div>
+                        <h5 class="content-box-title mb-0 no-auto-icon">System Operation Controls</h5>
+                        <p class="text-muted small mb-0">Global rules for charging stations and user limits.</p>
+                    </div>
+                </div>
+
+                <hr class="profile-divider">
+
+                <form id="system-settings-form">
+                    <div class="mb-4">
+                        <label class="form-label text-white">Daily Charging Limit (Per User)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-secondary"><i class="fas fa-clock"></i></span>
+                            <input type="number" id="daily-limit" class="form-control-dark" placeholder="e.g. 2" min="1" max="24">
+                            <span class="input-group-text bg-dark border-secondary text-secondary">Hours</span>
+                        </div>
+                        <small class="text-muted">Maximum hours a student can reserve per day.</small>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label text-white">Opening Time</label>
+                            <input type="time" id="open-time" class="form-control-dark">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white">Closing Time</label>
+                            <input type="time" id="close-time" class="form-control-dark">
+                        </div>
+                    </div>
+
+                    <div class="content-box bg-dark-light border-0 mb-4">
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center p-0">
+                            <div>
+                                <label class="form-check-label text-white h6 mb-1" for="maintenance-toggle">Maintenance Mode</label>
+                                <p class="text-muted small mb-0">Enable this to temporarily disable all new bookings.</p>
+                            </div>
+                            <input class="form-check-input" type="checkbox" id="maintenance-toggle" style="width: 3em; height: 1.5em;">
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-success px-5 py-2">
+                            <i class="fas fa-save me-2"></i>Apply System Rules
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+        </main>
+    </div>
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/api-client.js"></script>
+    
+    <script src="assets/js/app.js"></script>
+</body>
+
+</html>

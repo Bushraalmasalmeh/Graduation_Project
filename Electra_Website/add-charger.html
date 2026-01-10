@@ -16,25 +16,35 @@
 <body>
     <div class="d-flex" id="wrapper">
         <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header"><h3>ELECTRA</h3></div>
+            <div class="sidebar-header">
+                <h3>ELECTRA</h3>
+            </div>
             <ul class="sidebar-nav">
-                <li class="sidebar-item"><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
-                <li class="sidebar-item active"><a href="chargers.html"><i class="fas fa-charging-station"></i><span>Chargers</span></a></li>
+                <li class="sidebar-item"><a href="dashboard.html"><i
+                            class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                <li class="sidebar-item active"><a href="chargers.html"><i
+                            class="fas fa-charging-station"></i><span>Chargers</span></a></li>
                 <li class="sidebar-item"><a href="users.html"><i class="fas fa-users"></i><span>Users</span></a></li>
-                <li class="sidebar-item"><a href="bookings.html"><i class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
-                <li class="sidebar-item"><a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a></li>
-                <li class="sidebar-item"><a href="support.html"><i class="fas fa-envelope-open-text"></i><span>Inbox</span></a></li>
+                <li class="sidebar-item"><a href="bookings.html"><i
+                            class="fas fa-calendar-check"></i><span>Bookings</span></a></li>
+                <li class="sidebar-item"><a href="reports.html"><i class="fas fa-file-alt"></i><span>Reports</span></a>
+                </li>
+                <li class="sidebar-item"><a href="support.html"><i
+                            class="fas fa-envelope-open-text"></i><span>Inbox</span></a></li>
             </ul>
         </aside>
 
         <main class="main-content" id="main-content">
             <nav class="navbar">
                 <div class="container-fluid">
-                    <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle"><i class="fas fa-bars"></i></button>
+                    <button class="btn btn-outline-light d-lg-none me-3" id="menu-toggle"><i
+                            class="fas fa-bars"></i></button>
                     <span class="navbar-brand">Add New Charger</span>
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0 flex-row">
-                        <li class="nav-item me-3"><a class="nav-link" href="notifications.html"><i class="fas fa-bell"></i></a></li>
-                        <li class="nav-item"><a class="nav-link" href="settings.html"><i class="fas fa-user-circle"></i></a></li>
+                        <li class="nav-item me-3"><a class="nav-link" href="sysControll.html"><i
+                                    class="fa-solid fa-screwdriver-wrench"></i></a></li>
+                        <li class="nav-item"><a class="nav-link" href="settings.html"><i
+                                    class="fas fa-user-circle"></i></a></li>
                     </ul>
                 </div>
             </nav>
@@ -45,27 +55,35 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="charger-name">Charger Name</label>
-                                <input type="text" id="charger-name" class="form-control-dark" placeholder="e.g., IT College Charger" required>
+                                <input type="text" id="charger-name" class="form-control-dark"
+                                    placeholder="e.g., IT College Charger" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label for="charger-code">Station Code</label>
-                                <input type="text" id="charger-code" class="form-control-dark" placeholder="e.g., ST-001" required>
+                                <input type="text" id="charger-code" class="form-control-dark"
+                                    placeholder="e.g., ST-001" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label for="charger-dept">Department</label>
-                                <input type="text" id="charger-dept" class="form-control-dark" placeholder="e.g., Engineering" required>
+                                <input type="text" id="charger-dept" class="form-control-dark"
+                                    placeholder="e.g., Engineering" required>
                             </div>
 
-                            <div class="col-md-6 mb-3">
-                                <label for="cabinets">Cabinets</label>
-                                <input type="number" id="cabinets" class="form-control-dark" placeholder="Number of Cabinets" required>
+                            <div class="mb-3">
+                                <label for="cabinets" class="form-label">Number of Cabinets</label>
+                                <input type="number" id="cabinets" class="form-control" min="1" value="1"
+                                    placeholder="Enter number of cabinets (e.g., 4)" required>
+                                <div class="form-text text-muted">
+                                    The system will automatically generate chargers for these cabinets.
+                                </div>
                             </div>
 
                             <div class="col-md-6 mb-3">
                                 <label for="charger-location">Location</label>
-                                <input type="text" id="charger-location" class="form-control-dark" placeholder="e.g., Building 5, Floor 1" required>
+                                <input type="text" id="charger-location" class="form-control-dark"
+                                    placeholder="e.g., Building 5, Floor 1" required>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -80,17 +98,19 @@
 
                         <div class="mt-4 text-end">
                             <a href="chargers.html" class="btn btn-secondary-custom me-2">Cancel</a>
-                            <button type="submit" class="btn btn-primary-custom" style="padding: 10px 30px;">Save Charger</button>
+                            <button type="submit" class="btn btn-primary-custom" style="padding: 10px 30px;">Save
+                                Charger</button>
                         </div>
                     </form>
                 </div>
             </div>
         </main>
     </div>
-    
+
     <script src="assets/js/config.js"></script>
     <script src="assets/js/utils.js"></script>
     <script src="assets/js/api-client.js"></script>
     <script src="assets/js/app.js"></script>
 </body>
+
 </html>
