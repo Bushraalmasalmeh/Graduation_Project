@@ -31,36 +31,37 @@ class AuthController extends Controller
             'phone'        => 'required|string|max:10',
         ]);
 
-        $user = User::create([
-            'name'       => $request->name,
-            'email'      => $request->email,
-            'password'   => bcrypt($request->password),
-            'job_number' => $request->job_number,
-            'department' => $request->department,
-            'role_type'  => $request->role_type,
-            'status'     => 'active',
-        ]);
+        return DB::transaction(function () use ($request) {
+            $user = User::create([
+                'name'       => $request->name,
+                'email'      => $request->email,
+                'password'   => bcrypt($request->password),
+                'job_number' => $request->job_number,
+                'department' => $request->department,
+                'role_type'  => $request->role_type,
+                'status'     => 'active',
+            ]);
 
-        Car::create([
-            'user_id'      => $user->id,
-            'car_model'    => $request->car_model,
-            'plate_number' => $request->plate_number,
-            'car_image'    => null,
-        ]);
+            Car::create([
+                'user_id'      => $user->id,
+                'car_model'    => $request->car_model,
+                'plate_number' => $request->plate_number,
+                'car_image'    => null,
+            ]);
 
-        $user->phones()->create([
-            'phone' => $request->phone,
-            'type'  => 'primary',
-            'is_verified' => false,
-        ]);
+            $user->phones()->create([
+                'phone' => $request->phone,
+                'type'  => 'primary',
+            ]);
 
-        $token = $user->createToken('user_token')->plainTextToken;
+            $token = $user->createToken('user_token')->plainTextToken;
 
-        return response()->json([
-            'message' => 'User registered successfully',
-            'user'    => $user->load('primaryPhone'),
-            'token'   => $token
-        ], 201);
+            return response()->json([
+                'message' => 'User registered successfully',
+                'user'    => $user->load('primaryPhone'),
+                'token'   => $token
+            ], 201);
+        });
     }
 
     public function userLogin(LoginRequest $request)
@@ -156,34 +157,33 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully']);
     }
 
-    // ========== PASSWORD RESET ==========
+    // ========== PASSWORD RESET (No expires_at Column Needed) ==========
     public function forgotPassword(Request $request)
     {
         $request->validate(['email' => 'required|email|exists:users,email']);
 
+        // نمنع المستخدم من طلب كود جديد قبل مرور دقيقتين لضمان عدم السبام
         $existing = DB::table('password_reset_tokens')
             ->where('email', $request->email)
-            ->where('expires_at', '>=', now())
+            ->where('created_at', '>=', now()->subMinutes(2))
             ->first();
 
         if ($existing) {
             return response()->json([
-                'message' => 'A reset code was already sent. Please wait before requesting a new one.'
+                'message' => 'Please wait a moment before requesting a new code.'
             ], 429);
         }
 
         $code = rand(100000, 999999);
 
-        DB::table('password_reset_tokens')
-            ->where('email', $request->email)
-            ->delete();
+        // حذف أي كود قديم لهذا البريد لضمان النظافة
+        DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
+        // إدخال البيانات الجديدة (استخدمنا فقط الأعمدة الموجودة في داتابيس السيرفر)
         DB::table('password_reset_tokens')->insert([
             'email'      => $request->email,
             'token'      => $code,
             'created_at' => now(),
-            'expires_at' => now()->addMinute(),
-            'attempts'   => 0,
         ]);
 
         Mail::to($request->email)->send(new ResetCodeMail($code));
@@ -198,10 +198,11 @@ class AuthController extends Controller
             'code'  => 'required'
         ]);
 
+        // نتحقق أن الكود صحيح وأنه لم يمر عليه أكثر من 15 دقيقة (حسبنا الصلاحية برمجياً)
         $record = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->where('token', $request->code)
-            ->where('expires_at', '>=', now())
+            ->where('created_at', '>=', now()->subMinutes(15))
             ->first();
 
         if (!$record) {
@@ -219,10 +220,11 @@ class AuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
 
+        // نتحقق من الصلاحية قبل السماح بتغيير الباسورد
         $record = DB::table('password_reset_tokens')
             ->where('email', $request->email)
             ->where('token', $request->code)
-            ->where('created_at', '>=', now()->subMinutes(60))
+            ->where('created_at', '>=', now()->subMinutes(15))
             ->first();
 
         if (!$record) {
@@ -232,6 +234,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         $user->update(['password' => bcrypt($request->password)]);
 
+        // حذف التوكن فوراً بعد الاستخدام لزيادة الأمان
         DB::table('password_reset_tokens')->where('email', $request->email)->delete();
 
         return response()->json(['message' => 'Password reset successful.']);

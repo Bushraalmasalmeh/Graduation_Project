@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Http\Requests\Api;
-
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateBookingRequest extends FormRequest
@@ -14,7 +12,8 @@ class CreateBookingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'station_name'     => 'required|string',
+            'charger_id'       => 'required|integer|exists:chargers,id',
+            'station_name'     => 'nullable|string',
             'start_time'       => [
                 'required',
                 'string',
@@ -22,11 +21,11 @@ class CreateBookingRequest extends FormRequest
                     try {
                         \Carbon\Carbon::parse($value, 'Asia/Amman');
                     } catch (\Exception $e) {
-                        $fail('Invalid time format. Please use AM/PM format like "07:30 AM".');
+                        $fail('Invalid time format. Please use ISO format or AM/PM format.');
                     }
                 }
             ],
-            'duration_minutes' => 'required|integer|in:60,90,120',
+            'duration_minutes' => 'required|integer|min:15|max:180',
         ];
     }
 }

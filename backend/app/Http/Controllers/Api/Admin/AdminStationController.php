@@ -7,6 +7,7 @@ use App\Http\Requests\Api\AdminStationRequest;
 use App\Models\ChargerStation;
 use App\Models\Booking;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
 
@@ -137,7 +138,7 @@ class AdminStationController extends Controller
 
         return response()->json(['message' => 'Booking deleted by admin']);
     }
-    public function getAvailability(AdminStationRequest $request, $stationId)
+    public function getAvailability(Request $request, $stationId)
     {
         $request->validate([
             'date' => 'required|date_format:Y-m-d',
@@ -158,7 +159,7 @@ class AdminStationController extends Controller
 
         $bufferMinutes = 5;
         $slotStep = 15;
-        $duration = $request->duration;
+        $duration = (int)$request->duration;
         $response = [];
 
         foreach ($station->cabinets as $cabinet) {
