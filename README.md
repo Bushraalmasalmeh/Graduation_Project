@@ -1,4 +1,4 @@
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/d00647f4-329e-4929-889d-360a60e48342" /># ⚡ Electra - EV Charging Station Management System
+# ⚡ Electra - EV Charging Station Management System
 ### 🎓 Computer Science Graduation Project | Al-Zaytoonah University of Jordan
 
 > **Electra** is a comprehensive software platform designed to manage and monitor Electric Vehicle (EV) charging stations in real-time. It bridges modern web-based administration with seamless cross-platform mobile interactions.
@@ -22,9 +22,8 @@ As electric vehicles become increasingly prevalent, managing charging infrastruc
 
 | Web Management Dashboard | Real-Time Station Monitoring |
 | :---: | :---: |
-| *(<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/4f75f97a-f43d-4288-bdf5-3677e7df7fcb" />
-)* | *(<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/00b540a0-1ad5-46b8-af17-fab48551825d" />
-)* |
+| ![Dashboard](<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/4f75f97a-f43d-4288-bdf5-3677e7df7fcb" />) 
+| ![Monitoring](<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/00b540a0-1ad5-46b8-af17-fab48551825d" />)|
 
 ---
 
