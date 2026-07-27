@@ -18,13 +18,9 @@ As electric vehicles become increasingly prevalent, managing charging infrastruc
 
 ## 📸 Interface Preview
 
-> *Note: Place project screenshots or demo GIFs below for best presentation.*
-
 | Web Management Dashboard | Real-Time Station Monitoring |
 | :---: | :---: |
-| ![Dashboard](<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/5224bf43-677d-453c-a5bf-19ef937542fa" />) |
-![Monitoring](<img width="1411" height="792" alt="image" src="https://github.com/user-attachments/assets/380513b7-7005-4f57-9bc7-6375cba4885b" />) |
----
+| <img src="https://github.com/user-attachments/assets/5224bf43-677d-453c-a5bf-19ef937542fa" width="400" /> | <img src="https://github.com/user-attachments/assets/380513b7-7005-4f57-9bc7-6375cba4885b" width="400" /> |
 
 ## ✨ Key Features
 
