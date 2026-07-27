@@ -11,8 +11,8 @@ As electric vehicles become increasingly prevalent, managing charging infrastruc
 
 ### 🎯 Key Highlights:
 - 🎓 **Graduation Project:** Developed as the capstone graduation project for the Bachelor of Computer Science degree at Al-Zaytoonah University of Jordan.
-- 🖥️ **Web Dashboard:** Built a responsive, real-time web front-end dashboard to manage station operations, monitor status, and view key operational metrics[cite: 1].
-- 📱 **Mobile Integration:** Coordinated closely with the team to ensure visual and functional UI/UX consistency with the Flutter mobile application[cite: 1].
+- 🖥️ **Web Dashboard:** Built a responsive, real-time web front-end dashboard to manage station operations, monitor status, and view key operational metrics.
+- 📱 **Mobile Integration:** Coordinated closely with the team to ensure visual and functional UI/UX consistency with the Flutter mobile application.
 
 ---
 
@@ -30,17 +30,17 @@ As electric vehicles become increasingly prevalent, managing charging infrastruc
 
 - ⚡ **Real-Time Station Monitoring:** Track live operational status, charging power, and station availability.
 - 📊 **Dynamic Data Management:** Manage station locations, user access, and system configurations.
-- 🎨 **Consistent UI Design:** Clean, intuitive, and responsive user experience designed for effortless navigation[cite: 1].
+- 🎨 **Consistent UI Design:** Clean, intuitive, and responsive user experience designed for effortless navigation.
 - 🔗 **Cross-Platform Readiness:** Synchronized data flows designed to connect smoothly with mobile clients.
 
 ---
 
 ## 🛠️ Tech Stack & Architecture
 
-- **Front-End & UI:** HTML5, CSS3, JavaScript, Responsive Layout Principles[cite: 1]
-- **Mobile Ecosystem:** Flutter & Dart (Cross-Platform Integration)[cite: 1]
-- **Database & Backend Logic:** Relational Database Architecture / REST API Concept Foundations[cite: 1]
-- **Version Control:** Git & GitHub[cite: 1]
+- **Front-End & UI:** HTML5, CSS3, JavaScript, Responsive Layout Principles.
+- **Mobile Ecosystem:** Flutter & Dart (Cross-Platform Integration).
+- **Database & Backend Logic:** Relational Database Architecture / REST API Concept Foundations.
+- **Version Control:** Git & GitHub.
 
 ---
 
@@ -70,8 +70,6 @@ As electric vehicles become increasingly prevalent, managing charging infrastruc
    Navigate to the `backend` directory to configure database connections and start the API server.
 ---
 ## 📬 Connect with the Developer
-
-Developed by **Bushra Almasalmeh** — Computer Science Graduate (1st Rank) & Mobile Application Developer.
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/bushraalmasalmeh)
 [![Email](https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:bushra.almasalmeh33@gmail.com)
