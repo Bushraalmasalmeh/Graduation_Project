@@ -1,43 +1,66 @@
-# ⚡ Electra | EV Charging Management System
+# ⚡ Electra - EV Charging Station Management System
+### 🎓 Computer Science Graduation Project | Al-Zaytoonah University of Jordan
 
-**Electra** is an integrated solution designed to manage and streamline the electric vehicle (EV) charging process. This project was developed as a graduation project for the Computer Science department at **Al-Zaytoonah University of Jordan (ZUJ)**.
+> **Electra** is a comprehensive software platform designed to manage and monitor Electric Vehicle (EV) charging stations in real-time. It bridges modern web-based administration with seamless cross-platform mobile interactions.
 
 ---
 
-## 🚀 Overview
-Electra bridges the gap between software and hardware to provide a seamless charging experience. It features a mobile application for users, a robust backend for management, and hardware integration for real-time charging station control.
+## 🌟 Project Overview & Impact
 
-### 🛠️ System Components
-- **Mobile App:** Built with **Flutter** for a smooth cross-platform user experience.
-- **Backend & API:** Powered by **Laravel**, managing data and providing secure APIs.
-- **Hardware Layer:** **ESP32** microcontroller integrated with a keypad for secure charging session verification.
-- **Hosting:** Deployed on **DigitalOcean** for high availability and performance.
+As electric vehicles become increasingly prevalent, managing charging infrastructure efficiently is critical. **Electra** provides an end-to-end ecosystem featuring a centralized web dashboard for administrators and seamless integration points for mobile interfaces.
+
+### 🎯 Key Highlights:
+- 🎓 **Graduation Project:** Developed as the capstone graduation project for the Bachelor of Computer Science degree at Al-Zaytoonah University of Jordan.
+- 🖥️ **Web Dashboard:** Built a responsive, real-time web front-end dashboard to manage station operations, monitor status, and view key operational metrics[cite: 1].
+- 📱 **Mobile Integration:** Coordinated closely with the team to ensure visual and functional UI/UX consistency with the Flutter mobile application[cite: 1].
+
+---
+
+## 📸 Interface Preview
+
+> *Note: Place project screenshots or demo GIFs below for best presentation.*
+
+| Web Management Dashboard | Real-Time Station Monitoring |
+| :---: | :---: |
+| *(Add Dashboard Screenshot)* | *(Add Monitoring Screenshot)* |
 
 ---
 
 ## ✨ Key Features
-* **Real-time Monitoring:** Track charging status and station availability.
-* **Secure Authentication:** Keypad verification using hardware-software integration.
-* **User Management:** Complete profile and history tracking for EV owners.
-* **Station Management:** Admin dashboard to manage charging points and sessions.
-* **Cloud Integration:** Fully hosted backend ensuring 24/7 connectivity.
+
+- ⚡ **Real-Time Station Monitoring:** Track live operational status, charging power, and station availability.
+- 📊 **Dynamic Data Management:** Manage station locations, user access, and system configurations.
+- 🎨 **Consistent UI Design:** Clean, intuitive, and responsive user experience designed for effortless navigation[cite: 1].
+- 🔗 **Cross-Platform Readiness:** Synchronized data flows designed to connect smoothly with mobile clients.
 
 ---
 
-## 💻 Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-| Layer | Technology |
-| :--- | :--- |
-| **Frontend** | Flutter (Dart) |
-| **Backend** | Laravel (PHP) |
-| **Database** | MySQL |
-| **Hardware** | ESP32, Keypad |
-| **Server** | DigitalOcean |
-| **Version Control** | Git & GitHub |
+- **Front-End & UI:** HTML5, CSS3, JavaScript, Responsive Layout Principles[cite: 1]
+- **Mobile Ecosystem:** Flutter & Dart (Cross-Platform Integration)[cite: 1]
+- **Database & Backend Logic:** Relational Database Architecture / REST API Concept Foundations[cite: 1]
+- **Version Control:** Git & GitHub[cite: 1]
 
 ---
 
-## 🛠️ Installation & Setup
+## 👥 Team & Responsibilities
+
+- **Bushra Almasalmeh:** Lead Web Front-End Developer — Designed & built the web dashboard, structured station management views, and ensured UI consistency across web and mobile platforms[cite: 1].
+- **Team Members:** Collaboration on system logic and mobile app integration[cite: 1].
+
+---
+
+## 🚀 How to Run Locally
+
 1. **Clone the repository:**
    ```bash
    git clone [https://github.com/Bushraalmasalmeh/Electra.git](https://github.com/Bushraalmasalmeh/Electra.git)
+   Open the project:
+Open the project folder in VS Code or your preferred IDE.
+
+Launch the interface:
+Open index.html (or run your local development server) to launch the dashboard.
+
+📬 Contact
+Developed by Bushra Almasalmeh — LinkedIn Profile
