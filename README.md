@@ -22,9 +22,8 @@ As electric vehicles become increasingly prevalent, managing charging infrastruc
 
 | Web Management Dashboard | Real-Time Station Monitoring |
 | :---: | :---: |
-| ![Dashboard](<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/4f75f97a-f43d-4288-bdf5-3677e7df7fcb" />) 
-| ![Monitoring](<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/00b540a0-1ad5-46b8-af17-fab48551825d" />)|
-
+| ![Dashboard](<img width="1392" height="797" alt="image" src="https://github.com/user-attachments/assets/5224bf43-677d-453c-a5bf-19ef937542fa" />) |
+![Monitoring](<img width="1411" height="792" alt="image" src="https://github.com/user-attachments/assets/380513b7-7005-4f57-9bc7-6375cba4885b" />) |
 ---
 
 ## ✨ Key Features
